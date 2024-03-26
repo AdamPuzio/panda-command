@@ -34,16 +34,22 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/tsup/assets/esm_shims.js
-var init_esm_shims = __esm({
-  "node_modules/tsup/assets/esm_shims.js"() {
+// src/cjs-shim.ts
+import { createRequire } from "node:module";
+import path from "node:path";
+import url from "node:url";
+var init_cjs_shim = __esm({
+  "src/cjs-shim.ts"() {
+    globalThis.require = createRequire(import.meta.url);
+    globalThis.__filename = url.fileURLToPath(import.meta.url);
+    globalThis.__dirname = path.dirname(__filename);
   }
 });
 
 // node_modules/lodash.camelcase/index.js
 var require_lodash = __commonJS({
   "node_modules/lodash.camelcase/index.js"(exports, module) {
-    init_esm_shims();
+    init_cjs_shim();
     var INFINITY = 1 / 0;
     var symbolTag = "[object Symbol]";
     var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
@@ -420,7 +426,7 @@ var require_lodash = __commonJS({
 var require_dist = __commonJS({
   "node_modules/command-line-args/dist/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     function _interopDefault(ex) {
       return ex && typeof ex === "object" && "default" in ex ? ex["default"] : ex;
     }
@@ -1122,7 +1128,7 @@ var require_dist = __commonJS({
 var require_color_name = __commonJS({
   "node_modules/color-name/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     module.exports = {
       "aliceblue": [240, 248, 255],
       "antiquewhite": [250, 235, 215],
@@ -1279,7 +1285,7 @@ var require_color_name = __commonJS({
 // node_modules/color-convert/conversions.js
 var require_conversions = __commonJS({
   "node_modules/color-convert/conversions.js"(exports, module) {
-    init_esm_shims();
+    init_cjs_shim();
     var cssKeywords = require_color_name();
     var reverseKeywords = {};
     for (const key of Object.keys(cssKeywords)) {
@@ -1951,7 +1957,7 @@ var require_conversions = __commonJS({
 // node_modules/color-convert/route.js
 var require_route = __commonJS({
   "node_modules/color-convert/route.js"(exports, module) {
-    init_esm_shims();
+    init_cjs_shim();
     var conversions = require_conversions();
     function buildGraph() {
       const graph = {};
@@ -1991,15 +1997,15 @@ var require_route = __commonJS({
       };
     }
     function wrapConversion(toModel, graph) {
-      const path = [graph[toModel].parent, toModel];
+      const path2 = [graph[toModel].parent, toModel];
       let fn = conversions[graph[toModel].parent][toModel];
       let cur = graph[toModel].parent;
       while (graph[cur].parent) {
-        path.unshift(graph[cur].parent);
+        path2.unshift(graph[cur].parent);
         fn = link(conversions[graph[cur].parent][cur], fn);
         cur = graph[cur].parent;
       }
-      fn.conversion = path;
+      fn.conversion = path2;
       return fn;
     }
     module.exports = function(fromModel) {
@@ -2022,7 +2028,7 @@ var require_route = __commonJS({
 // node_modules/color-convert/index.js
 var require_color_convert = __commonJS({
   "node_modules/color-convert/index.js"(exports, module) {
-    init_esm_shims();
+    init_cjs_shim();
     var conversions = require_conversions();
     var route = require_route();
     var convert = {};
@@ -2085,7 +2091,7 @@ var require_color_convert = __commonJS({
 var require_ansi_styles = __commonJS({
   "node_modules/chalk-template/node_modules/ansi-styles/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     var wrapAnsi162 = (fn, offset) => (...args) => {
       const code = fn(...args);
       return `\x1B[${code + offset}m`;
@@ -2228,7 +2234,7 @@ var require_ansi_styles = __commonJS({
 var require_has_flag = __commonJS({
   "node_modules/has-flag/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     module.exports = (flag, argv = process.argv) => {
       const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
       const position = argv.indexOf(prefix + flag);
@@ -2242,7 +2248,7 @@ var require_has_flag = __commonJS({
 var require_supports_color = __commonJS({
   "node_modules/supports-color/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     var os3 = __require("os");
     var tty2 = __require("tty");
     var hasFlag2 = require_has_flag();
@@ -2345,7 +2351,7 @@ var require_supports_color = __commonJS({
 var require_util = __commonJS({
   "node_modules/chalk-template/node_modules/chalk/source/util.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     var stringReplaceAll2 = (string, substring, replacer) => {
       let index = string.indexOf(substring);
       if (index === -1) {
@@ -2385,7 +2391,7 @@ var require_util = __commonJS({
 var require_templates = __commonJS({
   "node_modules/chalk-template/node_modules/chalk/source/templates.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     var TEMPLATE_REGEX2 = /(?:\\(u(?:[a-f\d]{4}|\{[a-f\d]{1,6}\})|x[a-f\d]{2}|.))|(?:\{(~)?(\w+(?:\([^)]*\))?(?:\.\w+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(\})|((?:.|[\r\n\f])+?)/gi;
     var STYLE_REGEX2 = /(?:^|\.)(\w+)(?:\(([^)]*)\))?/g;
     var STRING_REGEX2 = /^(['"])((?:\\.|(?!\1)[^\\])*)\1$/;
@@ -2500,7 +2506,7 @@ var require_templates = __commonJS({
 var require_source = __commonJS({
   "node_modules/chalk-template/node_modules/chalk/source/index.js"(exports, module) {
     "use strict";
-    init_esm_shims();
+    init_cjs_shim();
     var ansiStyles2 = require_ansi_styles();
     var { stdout: stdoutColor2, stderr: stderrColor2 } = require_supports_color();
     var {
@@ -2678,7 +2684,7 @@ var require_source = __commonJS({
 // node_modules/lodash.assignwith/index.js
 var require_lodash2 = __commonJS({
   "node_modules/lodash.assignwith/index.js"(exports, module) {
-    init_esm_shims();
+    init_cjs_shim();
     var MAX_SAFE_INTEGER = 9007199254740991;
     var argsTag = "[object Arguments]";
     var funcTag = "[object Function]";
@@ -2843,23 +2849,23 @@ var require_lodash2 = __commonJS({
 });
 
 // src/index.ts
-init_esm_shims();
+init_cjs_shim();
 
 // src/command.ts
-init_esm_shims();
+init_cjs_shim();
 var import_command_line_args = __toESM(require_dist());
 
 // node_modules/command-line-usage/index.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/command-line-usage/lib/section/option-list.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/command-line-usage/lib/section.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/command-line-usage/node_modules/array-back/index.js
-init_esm_shims();
+init_cjs_shim();
 function isObject(input) {
   return typeof input === "object" && input !== null;
 }
@@ -2880,10 +2886,10 @@ function arrayify(input) {
 var array_back_default = arrayify;
 
 // node_modules/command-line-usage/lib/chalk-format.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/chalk-template/index.js
-init_esm_shims();
+init_cjs_shim();
 var import_chalk = __toESM(require_source(), 1);
 var TEMPLATE_REGEX = /(?:\\(u(?:[a-f\d]{4}|{[a-f\d]{1,6}})|x[a-f\d]{2}|.))|(?:{(~)?(#?[\w:]+(?:\([^)]*\))?(?:\.#?[\w:]+(?:\([^)]*\))?)*)(?:[ \t]|(?=\r?\n)))|(})|((?:.|[\r\n\f])+?)/gi;
 var STYLE_REGEX = /(?:^|\.)(?:(?:(\w+)(?:\(([^)]*)\))?)|(?:#(?=[:a-fA-F\d]{2,})([a-fA-F\d]{6})?(?::([a-fA-F\d]{6}))?))/g;
@@ -3059,13 +3065,13 @@ var Section = class {
 var section_default = Section;
 
 // node_modules/table-layout/index.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/table-layout/lib/rows.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/table-layout/node_modules/array-back/index.js
-init_esm_shims();
+init_cjs_shim();
 function isObject2(input) {
   return typeof input === "object" && input !== null;
 }
@@ -3086,7 +3092,7 @@ function arrayify2(input) {
 var array_back_default2 = arrayify2;
 
 // node_modules/table-layout/lib/cell.js
-init_esm_shims();
+init_cjs_shim();
 var _value = /* @__PURE__ */ new WeakMap();
 var _column = /* @__PURE__ */ new WeakMap();
 var Cell = class {
@@ -3133,10 +3139,10 @@ var Rows = class {
 var rows_default = Rows;
 
 // node_modules/table-layout/lib/columns.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/table-layout/node_modules/typical/index.js
-init_esm_shims();
+init_cjs_shim();
 function isNumber(n) {
   return !isNaN(parseFloat(n));
 }
@@ -3226,10 +3232,10 @@ var typical_default = {
 };
 
 // node_modules/table-layout/lib/column.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/table-layout/lib/padding.js
-init_esm_shims();
+init_cjs_shim();
 var Padding = class {
   constructor(padding) {
     this.left = padding.left;
@@ -3388,7 +3394,7 @@ var Columns = class _Columns {
 var columns_default = Columns;
 
 // node_modules/wordwrapjs/index.js
-init_esm_shims();
+init_cjs_shim();
 var re = {
   chunk: /[^\s-]+?-\b|\S+|\s+|\r\n?|\n/g,
   ansiEscapeSequence: /\u001b.*?m/g
@@ -3484,11 +3490,11 @@ function breakWord(word) {
 var wordwrapjs_default = Wordwrap;
 
 // node_modules/@75lb/deep-merge/index.js
-init_esm_shims();
+init_cjs_shim();
 var import_lodash = __toESM(require_lodash2(), 1);
 
 // node_modules/@75lb/deep-merge/node_modules/typical/index.js
-init_esm_shims();
+init_cjs_shim();
 function isPlainObject2(input) {
   return input !== null && typeof input === "object" && input.constructor === Object;
 }
@@ -3514,7 +3520,7 @@ function deepMerge(...args) {
 var deep_merge_default = deepMerge;
 
 // node_modules/table-layout/lib/ansi.js
-init_esm_shims();
+init_cjs_shim();
 var ansiEscapeSequence = /\u001b.*?m/g;
 function remove(input) {
   return input.replace(ansiEscapeSequence, "");
@@ -3524,7 +3530,7 @@ function has(input) {
 }
 
 // node_modules/table-layout/lib/util.js
-init_esm_shims();
+init_cjs_shim();
 function getLongestArray(arrays) {
   const lengths = arrays.map((array) => array.length);
   return Math.max(...lengths);
@@ -3712,7 +3718,7 @@ var Table = class {
 var table_layout_default = Table;
 
 // node_modules/command-line-usage/node_modules/typical/index.js
-init_esm_shims();
+init_cjs_shim();
 function isNumber2(n) {
   return !isNaN(parseFloat(n));
 }
@@ -3877,7 +3883,7 @@ function intersect(arr1, arr2) {
 var option_list_default = OptionList;
 
 // node_modules/command-line-usage/lib/section/content.js
-init_esm_shims();
+init_cjs_shim();
 var ContentSection = class extends section_default {
   constructor(section) {
     super();
@@ -3971,10 +3977,10 @@ function commandLineUsage(sections) {
 var command_line_usage_default = commandLineUsage;
 
 // node_modules/chalk/source/index.js
-init_esm_shims();
+init_cjs_shim();
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
-init_esm_shims();
+init_cjs_shim();
 var ANSI_BACKGROUND_OFFSET = 10;
 var wrapAnsi16 = (offset = 0) => (code) => `\x1B[${code + offset}m`;
 var wrapAnsi256 = (offset = 0) => (code) => `\x1B[${38 + offset};5;${code}m`;
@@ -4161,7 +4167,7 @@ var ansiStyles = assembleStyles();
 var ansi_styles_default = ansiStyles;
 
 // node_modules/chalk/source/vendor/supports-color/index.js
-init_esm_shims();
+init_cjs_shim();
 import process2 from "node:process";
 import os2 from "node:os";
 import tty from "node:tty";
@@ -4288,7 +4294,7 @@ var supportsColor = {
 var supports_color_default = supportsColor;
 
 // node_modules/chalk/source/utilities.js
-init_esm_shims();
+init_cjs_shim();
 function stringReplaceAll(string, substring, replacer) {
   let index = string.indexOf(substring);
   if (index === -1) {
@@ -4466,7 +4472,7 @@ var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
 var source_default = chalk2;
 
 // src/command-help.ts
-init_esm_shims();
+init_cjs_shim();
 var CommandParser = class _CommandParser {
   static TYPE_ALIASES = {
     bool: "boolean",
@@ -4624,7 +4630,7 @@ var CommandParser = class _CommandParser {
 };
 
 // src/convert.ts
-init_esm_shims();
+init_cjs_shim();
 var rainbow = (string) => {
   const ignoreChars = /[^!-~]/g;
   if (!string || string.length === 0)
@@ -4912,7 +4918,7 @@ ${msg}
 };
 
 // src/command.types.ts
-init_esm_shims();
+init_cjs_shim();
 export {
   Command
 };

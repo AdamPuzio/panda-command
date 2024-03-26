@@ -37,11 +37,12 @@ const MyCommand = new Command({
 }).parse()
 ```
 
-From here, you can run your script in 1 of 3 ways:
+From here, you can run your script in 1 of 4 ways:
 
-1. Call the script directly
-2. Add the script to your `package.json` into `scripts` and run `npm run <script>`
-3. Add the script to your `package.json` into `bin` and run `npm link` (or install globally) to run as an independent command
+1. Call the script directly (example: `./my-script.js`)
+2. Call the script via `node` (example: `node my-script.js`)
+3. Add the script to your `package.json` into `scripts` and run `npm run <script>`
+4. Add the script to your `package.json` into `bin` and run `npm link` (or install globally) to run as an independent command
 
 
 ### Properties
@@ -142,7 +143,7 @@ The `subcommands` property accepts an array of other Commands. It will read them
 
 ### Output Methods
 
-You can output into the terminal manually using `console` or use the built in features.
+You can output into the terminal manually using `console` or by using the built in prompt features.
 
 ```js
 const MyCommand = new Command({
