@@ -19,7 +19,18 @@
     "watch": "npm run build -- --watch src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "args",
+    "argv",
+    "bin",
+    "cli",
+    "command",
+    "command-line",
+    "console",
+    "parser",
+    "script",
+    "terminal"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
