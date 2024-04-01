@@ -11,7 +11,12 @@ export interface CommandInterface {
   usage?: string
   version?: string | boolean
 
-  subcommands?: boolean
+  subcommands?: []
+
+  prompts?: []
+  promptTypes?: {
+    [key: string]: any
+  }
   
   fun?: boolean
 

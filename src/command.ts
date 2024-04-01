@@ -2,6 +2,7 @@ import clargs from 'command-line-args'
 import clusage from 'command-line-usage'
 // @ts-expect-error
 import chalk from 'chalk'
+import inquirer from 'inquirer'
 
 import { CommandInterface, CommandArgumentInterface, CommandOptionInterface } from './command.types'
 import { CommandParser } from './command-help'
@@ -24,6 +25,9 @@ export class Command {
   options: CommandOptionInterface[] = []
 
   subcommands = []
+
+  prompts = []
+  promptTypes = {}
 
   fun = true
   
@@ -78,6 +82,11 @@ export class Command {
 
     this.getSubcommands()
 
+    // register any prompts
+    Object.entries(this.promptTypes).forEach(([k, v]) => {
+      inquirer.registerPrompt(k, v)
+    })
+
     return this
   }
 
@@ -99,7 +108,8 @@ export class Command {
     Object.keys(primaryParse._args || []).forEach(e => delete all[e])
     const etc = {
       argv: primaryParse._unknown || [],
-      opts: primaryParse
+      opts: primaryParse,
+      data: {}
     }
     const fnargs = [args, all, etc]
 
@@ -111,6 +121,13 @@ export class Command {
         return cmd
       }
     }
+
+    await this.validateOptions(etc.opts._all)
+
+    if (this.prompts.length > 0) {
+      const answers = await inquirer.prompt(this.prompts, etc.opts._all)
+      etc.data = answers
+    }
     
     await this.action.apply(this, fnargs)
 
@@ -118,6 +135,30 @@ export class Command {
   }
 
   /**
+   * Validate any arguments or options that have a `validate` property
+   * @param {object} data   Data object to validate against
+   * @returns {boolean}     True if successful
+   */
+  async validateOptions (data) {
+    const options = this._options
+    for (let i=0; i<options.length; i++) {
+      const { name, validate } = options[i]
+      // check option has a validation property and a value has been sent
+      if (typeof validate === 'function' && data[name]) {
+        // run validation
+        let validation = validate(data[name])
+        // if validation is async, await response
+        if (validation instanceof Promise) validation = await validation
+
+        if (validation === false) return this.error(null, `Invalid value for '${name}': ${data[name]}`)
+        else if (typeof validation === 'string') return this.error(null, validation)
+      }
+    }
+    return true
+  }
+
+  /**
+   * Add an argument
    * 
    * @param {object} arg  Argument object
    * @returns 
