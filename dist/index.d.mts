@@ -11,7 +11,11 @@ interface CommandInterface {
     hidden?: boolean;
     usage?: string;
     version?: string | boolean;
-    subcommands?: boolean;
+    subcommands?: [];
+    prompts?: [];
+    promptTypes?: {
+        [key: string]: any;
+    };
     fun?: boolean;
     action?: (args?: any, opts?: any, all?: any) => Promise<void | any>;
 }
@@ -45,6 +49,8 @@ declare class Command {
     arguments: CommandArgumentInterface;
     options: CommandOptionInterface[];
     subcommands: any[];
+    prompts: any[];
+    promptTypes: {};
     fun: boolean;
     _arguments: any[];
     _options: any[];
@@ -73,6 +79,13 @@ declare class Command {
      */
     parse(argv?: string[]): Promise<any>;
     /**
+     * Validate any arguments or options that have a `validate` property
+     * @param {object} data   Data object to validate against
+     * @returns {boolean}     True if successful
+     */
+    validateOptions(data: any): Promise<true | void>;
+    /**
+     * Add an argument
      *
      * @param {object} arg  Argument object
      * @returns

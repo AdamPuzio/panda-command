@@ -59,6 +59,8 @@ From here, you can run your script in 1 of 4 ways:
 | hidden            | boolean      | N   | Hides the command from `--help` if `true` |
 | version           | string       | N   | Semver version of the command |
 | subcommands       | array        | N   | List of subcommands to be parsed |
+| prompts           | array        | N   | List of prompts to run |
+| promptTypes       | object       | N   | Key/value list of prompt types available to `prompts` |
 | action            | function     | N   | Action method to run when command is called |
 
 ### Experimental Properties
@@ -100,8 +102,24 @@ const Test = new Command({
 | defaultValue  | any          | N   | Initial option value |
 | group         | string|array | N   | Category name to group by |
 | subcommand    | boolean      | N   | Flag to declare argument uses subcommands (default: `false`) |
+| validate      | function     | N   | Function to validate passed value against |
 
 > Note: there can be only one argument parameter passed in and NO argument can be passed if using `subcommands`
+
+```js
+const MyCommand = new Command({
+  command: 'my-command',
+  arguments: {
+    name: 'value',
+    type: String,
+    multiple: true,
+  }
+})
+```
+
+```bash
+my-command foo bar
+```
 
 ### Options
 
@@ -115,6 +133,7 @@ const Test = new Command({
 | defaultOption | boolean      | N   | Flag to identify where unaccounted values go (default: `false`) |
 | defaultValue  | any          | N   | Initial option value |
 | group         | string|array | N   | Category name to group by |
+| validate      | function     | N   | Function to validate passed value against |
 
 
 More details on option definitions can be found [here](https://github.com/75lb/command-line-args/blob/master/doc/option-definition.md)
@@ -136,6 +155,45 @@ const MyCommand = new Command({
 ```bash
 my-command --file src/file.txt
 ```
+
+### Prompts
+
+Users can be prompted to answer questions to get data. The [Inquirer](https://www.npmjs.com/package/inquirer) library is used to generate these prompts.
+
+Both `arguments` and `options` can be used to allow the end user to bypass specific prompts by providing a value in the command. The `name` property must match between the `options` or `arguments` and the `prompts` item.
+
+Additionally, the `promptTypes` property is used to add in custom prompt types.
+
+More details on prompt types and how they work can be found [here](https://www.npmjs.com/package/inquirer#objects)
+
+```js
+const MyCommand = new Command({
+  command: 'my-command',
+  options: [
+    {
+      name: 'linter',
+      alias: 'l',
+      type: String,
+    }
+  ],
+  prompts: [
+    {
+      name: 'linter',
+      type: 'list',
+      message: 'Select a linter',
+      choices: ['ESLint', 'JSLint', 'JSHint', 'StandardJS'],
+      default: 'StandardJS',
+      validate: async function(response) {
+        if (['ESLint', 'JSLint', 'JSHint', 'StandardJS'].includes(response)) return true
+        return false
+      }
+    }
+  ]
+})
+```
+
+Notes:
+- Arguments and options used to provide a value for a prompt WILL NOT trigger the prompt validation if a value is passed, so option validation is recommended, especially in the case of a list
 
 ### Subcommands
 
@@ -221,3 +279,4 @@ npm run my-command -- --debug
 - [`command-line-args`](https://github.com/75lb/command-line-args) for parsing arguments
 - [`command-line-usage`](https://github.com/75lb/command-line-usage) for generating help docs
 - [`chalk`](https://github.com/chalk/chalk) for terminal coloring
+- [`inquirer`](https://www.npmjs.com/package/inquirer) for prompts
