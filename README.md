@@ -248,6 +248,22 @@ By using the `help` property, you can override this to display whatever text you
 my-command foo --tags Universal Item "Item Ref" -dx
 ```
 
+## Scripts
+
+### Build
+
+- **build** `npm run build` - Build from `./src` to `./dist` for ESM & CommonJS (with types)
+- **build:cjs** `npm run build:cjs` - Build from `./src` to `./dist` for CommonJS (with types)
+- **build:esm** `npm run build:esm` - Build from `./src` to `./dist` for ESM (with types)
+- **watch** `npm run watch` - Watch `./src` directory and build on file change to `./dist` for ESM & CommonJS (with types)
+
+### Lint
+
+- **lint** `npm run lint` - Lint all files in `./src`
+- **lint:fix** `npm run lint:fix` - Lint and fix all files in `./src`
+- **lint:prettier** `npm run lint:prettier` - Fix styling for all files in `./src`
+- **lint:prettier:ci** `npm run lint:prettier:ci` - CI style check
+
 ## Notes
 
 ### Running Commands with NPM

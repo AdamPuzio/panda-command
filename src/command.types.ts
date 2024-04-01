@@ -17,10 +17,10 @@ export interface CommandInterface {
   promptTypes?: {
     [key: string]: any
   }
-  
+
   fun?: boolean
 
-  action?: (args?, opts?, all?) => Promise<void|any>
+  action?: (args?, opts?, all?) => Promise<void | any>
 }
 
 export interface CommandArgumentInterface {
