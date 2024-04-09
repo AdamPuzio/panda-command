@@ -6,7 +6,6 @@ export default defineConfig({
   target: 'esnext',
   platform: 'node',
   esbuildOptions(options, context) {
-    if (context.format === 'esm')
-      options.inject = ['src/cjs-shim.ts']
-  }
+    if (context.format === 'esm') options.inject = ['src/cjs-shim.ts']
+  },
 })

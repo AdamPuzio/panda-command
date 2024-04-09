@@ -37728,7 +37728,7 @@ var CommandParser = (_class = class _CommandParser {
     const lines = _CommandParser.parseText(text);
     _CommandParser.normalizeIndent(lines);
     const paramList = [];
-    const params = lines.reduce((result, line) => {
+    lines.reduce((result, line) => {
       const param = _CommandParser.extractParam(line.text);
       console.log({ param, result, line });
       if (param) {
@@ -37746,7 +37746,7 @@ var CommandParser = (_class = class _CommandParser {
     const lines = _CommandParser.parseText(text);
     _CommandParser.normalizeIndent(lines);
     const paramList = [];
-    const params = lines.reduce((result, line) => {
+    lines.reduce((result, line) => {
       const param = _CommandParser.extractParam(line.text);
       if (param) {
         paramList.push({ ...param });
@@ -37775,7 +37775,10 @@ var CommandParser = (_class = class _CommandParser {
     return lines;
   }
   static normalizeIndent(lines) {
-    const minIndent = lines.reduce((min, line) => Math.min(min, line.indent), 80);
+    const minIndent = lines.reduce(
+      (min, line) => Math.min(min, line.indent),
+      80
+    );
     lines.forEach((line) => line.indent -= minIndent);
     return lines;
   }
@@ -37783,7 +37786,7 @@ var CommandParser = (_class = class _CommandParser {
     if (!text.startsWith("-")) {
       return;
     }
-    const [_3, name1, name2, type, desc] = text.match(
+    const [name1, name2, type, desc] = text.match(
       /(-[\w.-]+),?\s*(-[\w.-]+)?=?\s*(bool|boolean|int|num|number|str|string)?\s(.*)/i
     ) || [];
     if (!name1) {
@@ -37806,7 +37809,12 @@ var CommandParser = (_class = class _CommandParser {
     const name2 = rawName2 && rawName2.replace(/^-*/, "");
     const dashes1 = rawName1 && rawName1.search(/[^-]/);
     const dashes2 = rawName1 && rawName1.search(/[^-]/);
-    const baseObj = { name: void 0, alias: void 0, type: void 0, description: void 0 };
+    const baseObj = {
+      name: void 0,
+      alias: void 0,
+      type: void 0,
+      description: void 0
+    };
     if (!name2)
       return { ...baseObj, name: name1 };
     if (dashes1 > dashes2)
@@ -37821,7 +37829,7 @@ var CommandParser = (_class = class _CommandParser {
     const argList = argStr.trim().split(" ");
     const args = [];
     argList.forEach((i) => {
-      const [name, type] = i.trim().slice(1, -1).split(":");
+      const [name] = i.trim().slice(1, -1).split(":");
       const arg = {
         name,
         subcommand: void 0,
@@ -37949,8 +37957,8 @@ var Command = (_class2 = class {
   __init13() {this._type = "command"}
   /**
    * Command constructor
-   * 
-   * @param {object} cfg  Configuration object 
+   *
+   * @param {object} cfg  Configuration object
    * @returns {Command} Command instance (for chainability)
    */
   constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);_class2.prototype.__init17.call(this);
@@ -37959,8 +37967,8 @@ var Command = (_class2 = class {
   }
   /**
    * Initialization method (called by constructor)
-   * 
-   * @param {object} cfg  Configuration object 
+   *
+   * @param {object} cfg  Configuration object
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg) {
@@ -37993,7 +38001,7 @@ var Command = (_class2 = class {
   }
   /**
    * Parse the command-line arguments
-   * 
+   *
    * @param {array} argv  Argv stack
    * @returns {Command}   Command instance (for chainability)
    */
@@ -38001,7 +38009,11 @@ var Command = (_class2 = class {
     if (!argv)
       argv = process.argv;
     const argMix = [].concat(this._arguments, this._options);
-    const primaryParse = (0, import_command_line_args.default)(argMix, { argv, stopAtFirstUnknown: true, camelCase: true });
+    const primaryParse = (0, import_command_line_args.default)(argMix, {
+      argv,
+      stopAtFirstUnknown: true,
+      camelCase: true
+    });
     const args = primaryParse._args || {};
     const all = Object.assign({}, primaryParse._all || primaryParse);
     Object.keys(primaryParse._args || []).forEach((e) => delete all[e]);
@@ -38030,7 +38042,7 @@ var Command = (_class2 = class {
         transform = await transform;
       etc.data = transform;
     }
-    await this.action.apply(this, fnargs);
+    await this.action(...fnargs);
     return this;
   }
   /**
@@ -38056,24 +38068,27 @@ var Command = (_class2 = class {
   }
   /**
    * Add an argument
-   * 
+   *
    * @param {object} arg  Argument object
-   * @returns 
+   * @returns
    */
   argument(arg) {
-    arg = { ...{
-      name: arg.name,
-      subcommand: false,
-      defaultOption: true,
-      multiple: false,
-      group: "_args"
-    }, ...arg };
+    arg = {
+      ...{
+        name: arg.name,
+        subcommand: false,
+        defaultOption: true,
+        multiple: false,
+        group: "_args"
+      },
+      ...arg
+    };
     this._arguments.push(arg);
     return this;
   }
   /**
    * Add an option
-   * 
+   *
    * @param {object} opt  Option object
    * @returns {Command}   Command instance (for chainability)
    */
@@ -38090,7 +38105,7 @@ var Command = (_class2 = class {
   }
   /**
    * Add a subcommand
-   * 
+   *
    * @param {Command} command Subcommand instance
    * @returns {Command} Command instance (for chainability)
    */
@@ -38101,7 +38116,7 @@ var Command = (_class2 = class {
   }
   /**
    * Retrieve the list of commands
-   * 
+   *
    * @returns {array}   Array of commands in command stack
    */
   getCommandStack() {
@@ -38109,7 +38124,7 @@ var Command = (_class2 = class {
   }
   /**
    * Retrieve the list of available subcommands
-   * 
+   *
    * @returns {array}   Array of subcommands
    */
   getSubcommands() {
@@ -38122,7 +38137,7 @@ var Command = (_class2 = class {
   __init14() {this.transform = async (data) => data}
   /**
    * Method to trigger once processed
-   * 
+   *
    * @param {object} args   Arguments
    * @param {object} opts   Options
    * @param {object} etc    Complete object of parsed data
@@ -38139,16 +38154,28 @@ var Command = (_class2 = class {
     const additionalHelp = this.additionalHelp ? "\n\n" + this.additionalHelp : "";
     if (this.help) {
       content += "\n" + this.help + additionalHelp;
-      sections.push({ header: this.title || `Command: ${this.command}`, content });
+      sections.push({
+        header: this.title || `Command: ${this.command}`,
+        content
+      });
     } else {
       content += additionalHelp;
-      sections.push({ header: this.title || `Command: ${this.command}`, content });
-      const argStr = CommandParser.generateArgString(this._commandStack, this._arguments);
+      sections.push({
+        header: this.title || `Command: ${this.command}`,
+        content
+      });
+      const argStr = CommandParser.generateArgString(
+        this._commandStack,
+        this._arguments
+      );
       sections.push({ header: "Usage", content: argStr });
       if (this._options.length > 0)
         sections.push({ header: "Options", optionList: this._options });
       if (this.subcommands.length > 0)
-        sections.push({ header: "Commands", content: CommandParser.generateCommandList(this._subcommands) });
+        sections.push({
+          header: "Commands",
+          content: CommandParser.generateCommandList(this._subcommands)
+        });
     }
     console.log(command_line_usage_default(sections));
     process.exit();
