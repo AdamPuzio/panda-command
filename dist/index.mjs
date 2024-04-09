@@ -37934,6 +37934,7 @@ var convertHslToRgb = (hsl) => {
 
 // src/command.ts
 var Command = class {
+  name;
   command;
   title = "";
   description = "";
@@ -37969,18 +37970,22 @@ var Command = class {
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg) {
+    if (!cfg.command)
+      cfg.command = cfg.name;
     Object.entries(cfg).forEach(([key, value]) => {
       this[key] = value;
     });
     this._commandStack.push(cfg.command);
     const usage = CommandParser.parseUsage(cfg.usage);
-    const opts = [].concat(usage, cfg.options, [{
-      name: "help",
-      alias: "h",
-      type: Boolean,
-      description: "Display help",
-      group: "_system"
-    }]);
+    const opts = [].concat(usage, cfg.options || [], [
+      {
+        name: "help",
+        alias: "h",
+        type: Boolean,
+        description: "Display help",
+        group: "_system"
+      }
+    ]);
     opts.forEach((o) => this.option(o));
     if (cfg.arguments && cfg.subcommands)
       throw new Error("Commands with subcommands cannot have arguments");
@@ -38012,19 +38017,24 @@ var Command = class {
       data: {}
     };
     const fnargs = [args, all, etc];
-    if (all.help === true)
-      return this.generateHelp();
-    if (this._arguments.length > 0) {
-      if (primaryParse._args.subcommand) {
-        const cmd = this._subcommands[primaryParse._args.subcommand];
+    if (primaryParse._unknown && this.subcommands.length > 0) {
+      const testSubcommand = primaryParse._unknown[0];
+      if (this._subcommands[testSubcommand]) {
+        const cmd = this._subcommands[testSubcommand];
+        etc.argv.shift();
         cmd.parse(etc.argv);
         return cmd;
       }
     }
+    if (all.help === true)
+      return this.generateHelp();
     await this.validateOptions(etc.opts._all);
     if (this.prompts.length > 0) {
       const answers = await inquirer_default.prompt(this.prompts, etc.opts._all);
-      etc.data = answers;
+      let transform = this.transform(answers);
+      if (transform instanceof Promise)
+        transform = await transform;
+      etc.data = transform;
     }
     await this.action.apply(this, fnargs);
     return this;
@@ -38111,15 +38121,11 @@ var Command = class {
   getSubcommands() {
     if (this.subcommands.length === 0)
       return [];
-    this.argument({
-      name: "subcommand",
-      subcommand: true,
-      defaultOption: true
-    });
     const subcommands = [];
     this.subcommands.forEach((subcommand) => this.subcommand(subcommand));
     return subcommands;
   }
+  transform = async (data) => data;
   /**
    * Method to trigger once processed
    * 

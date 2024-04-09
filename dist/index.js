@@ -37929,6 +37929,7 @@ var convertHslToRgb = (hsl) => {
 // src/command.ts
 var Command = (_class2 = class {
   
+  
   __init2() {this.title = ""}
   __init3() {this.description = ""}
   
@@ -37952,7 +37953,7 @@ var Command = (_class2 = class {
    * @param {object} cfg  Configuration object 
    * @returns {Command} Command instance (for chainability)
    */
-  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);
+  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);_class2.prototype.__init17.call(this);
     this.init(cfg);
     return this;
   }
@@ -37963,18 +37964,22 @@ var Command = (_class2 = class {
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg) {
+    if (!cfg.command)
+      cfg.command = cfg.name;
     Object.entries(cfg).forEach(([key, value]) => {
       this[key] = value;
     });
     this._commandStack.push(cfg.command);
     const usage = CommandParser.parseUsage(cfg.usage);
-    const opts = [].concat(usage, cfg.options, [{
-      name: "help",
-      alias: "h",
-      type: Boolean,
-      description: "Display help",
-      group: "_system"
-    }]);
+    const opts = [].concat(usage, cfg.options || [], [
+      {
+        name: "help",
+        alias: "h",
+        type: Boolean,
+        description: "Display help",
+        group: "_system"
+      }
+    ]);
     opts.forEach((o) => this.option(o));
     if (cfg.arguments && cfg.subcommands)
       throw new Error("Commands with subcommands cannot have arguments");
@@ -38006,19 +38011,24 @@ var Command = (_class2 = class {
       data: {}
     };
     const fnargs = [args, all, etc];
-    if (all.help === true)
-      return this.generateHelp();
-    if (this._arguments.length > 0) {
-      if (primaryParse._args.subcommand) {
-        const cmd = this._subcommands[primaryParse._args.subcommand];
+    if (primaryParse._unknown && this.subcommands.length > 0) {
+      const testSubcommand = primaryParse._unknown[0];
+      if (this._subcommands[testSubcommand]) {
+        const cmd = this._subcommands[testSubcommand];
+        etc.argv.shift();
         cmd.parse(etc.argv);
         return cmd;
       }
     }
+    if (all.help === true)
+      return this.generateHelp();
     await this.validateOptions(etc.opts._all);
     if (this.prompts.length > 0) {
       const answers = await inquirer_default.prompt(this.prompts, etc.opts._all);
-      etc.data = answers;
+      let transform = this.transform(answers);
+      if (transform instanceof Promise)
+        transform = await transform;
+      etc.data = transform;
     }
     await this.action.apply(this, fnargs);
     return this;
@@ -38105,15 +38115,11 @@ var Command = (_class2 = class {
   getSubcommands() {
     if (this.subcommands.length === 0)
       return [];
-    this.argument({
-      name: "subcommand",
-      subcommand: true,
-      defaultOption: true
-    });
     const subcommands = [];
     this.subcommands.forEach((subcommand) => this.subcommand(subcommand));
     return subcommands;
   }
+  __init14() {this.transform = async (data) => data}
   /**
    * Method to trigger once processed
    * 
@@ -38163,7 +38169,7 @@ var Command = (_class2 = class {
     const xopts = { styles: null, type: "log", ...opts };
     console[xopts.type](this.style(xopts.styles)(msg));
   }
-  __init14() {this.out = (msg, opts = {}) => this.log(msg, opts)}
+  __init15() {this.out = (msg, opts = {}) => this.log(msg, opts)}
   error(err, msg, exit = true) {
     const cfg = { type: "error", styles: ["red"] };
     if (msg)
@@ -38174,8 +38180,8 @@ var Command = (_class2 = class {
     if (exit)
       process.exit();
   }
-  __init15() {this.spacer = () => console.log()}
-  __init16() {this.rainbow = (text) => rainbow(text)}
+  __init16() {this.spacer = () => console.log()}
+  __init17() {this.rainbow = (text) => rainbow(text)}
   heading(msg, opts = {}) {
     const xopts = { styles: "bold", ...opts };
     if ((/* @__PURE__ */ new Date()).getMonth() === 5 && this.fun === true)
