@@ -29,7 +29,7 @@ export class Command {
   arguments: CommandArgumentInterface
   options: CommandOptionInterface[] = []
 
-  subcommands:any = []
+  subcommands: any = []
 
   prompts = []
   promptTypes = {}
@@ -259,7 +259,7 @@ export class Command {
     return subcommands
   }
 
-  transform = async (data) => data
+  transform = async data => data
 
   /**
    * Method to trigger once processed
