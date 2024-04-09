@@ -1,5 +1,6 @@
 export interface CommandInterface {
-  command: string
+  name: string
+  command?: string
   title?: string
   description?: string
   arguments?: CommandArgumentInterface
@@ -11,9 +12,9 @@ export interface CommandInterface {
   usage?: string
   version?: string | boolean
 
-  subcommands?: []
+  subcommands?: any[]
 
-  prompts?: []
+  prompts?: any[]
   promptTypes?: {
     [key: string]: any
   }

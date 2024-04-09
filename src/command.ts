@@ -16,7 +16,8 @@ import { rainbow } from './convert'
  * Command class
  */
 export class Command {
-  command: string
+  name: string
+  command?: string
   title?: string = ''
   description?: string = ''
   version?: string
@@ -28,7 +29,7 @@ export class Command {
   arguments: CommandArgumentInterface
   options: CommandOptionInterface[] = []
 
-  subcommands = []
+  subcommands:any = []
 
   prompts = []
   promptTypes = {}
@@ -60,6 +61,7 @@ export class Command {
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg: CommandInterface) {
+    if (!cfg.command) cfg.command = cfg.name
     Object.entries(cfg).forEach(([key, value]) => {
       this[key] = value
     })
@@ -69,7 +71,7 @@ export class Command {
     // parse the help string
     const usage = CommandParser.parseUsage(cfg.usage)
 
-    const opts = [].concat(usage, cfg.options, [
+    const opts = [].concat(usage, cfg.options || [], [
       {
         name: 'help',
         alias: 'h',
@@ -123,20 +125,27 @@ export class Command {
     }
     const fnargs: [any, any, any] = [args, all, etc]
 
-    if (all.help === true) return this.generateHelp()
-    if (this._arguments.length > 0) {
-      if (primaryParse._args.subcommand) {
-        const cmd = this._subcommands[primaryParse._args.subcommand]
+    // check for possibility of subcommand being called
+    if (primaryParse._unknown && this.subcommands.length > 0) {
+      const testSubcommand = primaryParse._unknown[0]
+      if (this._subcommands[testSubcommand]) {
+        const cmd = this._subcommands[testSubcommand]
+        etc.argv.shift() // shift off subcommand from argv
         cmd.parse(etc.argv)
         return cmd
       }
     }
 
+    if (all.help === true) return this.generateHelp()
+
     await this.validateOptions(etc.opts._all)
 
     if (this.prompts.length > 0) {
       const answers = await inquirer.prompt(this.prompts, etc.opts._all)
-      etc.data = answers
+      // run the transform event handler, skip if false
+      let transform = this.transform(answers)
+      if (transform instanceof Promise) transform = await transform
+      etc.data = transform
     }
 
     await this.action(...fnargs)
@@ -242,12 +251,6 @@ export class Command {
   getSubcommands() {
     if (this.subcommands.length === 0) return []
 
-    // create an argument specifically for subcommands
-    this.argument({
-      name: 'subcommand',
-      subcommand: true,
-      defaultOption: true,
-    })
     const subcommands = []
 
     // add each subcommand
@@ -255,6 +258,8 @@ export class Command {
 
     return subcommands
   }
+
+  transform = async (data) => data
 
   /**
    * Method to trigger once processed
