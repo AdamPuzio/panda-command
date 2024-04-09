@@ -30,7 +30,7 @@ Now you're ready to create a Command:
 
 ```js
 const MyCommand = new Command({
-  command: 'my-command',
+  name: 'my-command',
   action: async (args, opts, all) => {
     // do your thing
   }
@@ -49,7 +49,8 @@ From here, you can run your script in 1 of 4 ways:
 
 | Key               | Type         | Req | Description |
 | ----------------- | ------------ | --- | ----------- |
-| command           | string       | Y   | Command (used to enable subcommands) |
+| name              | string       | Y   | Name |
+| command           | string       | N   | Command (used to enable subcommands) |
 | title             | string       | N   | Title |
 | description       | string       | N   | Description to be used in help |
 | arguments         | object       | N   | Argument parsing definition |
@@ -61,6 +62,7 @@ From here, you can run your script in 1 of 4 ways:
 | subcommands       | array        | N   | List of subcommands to be parsed |
 | prompts           | array        | N   | List of prompts to run |
 | promptTypes       | object       | N   | Key/value list of prompt types available to `prompts` |
+| transform         | function     | N   | Method to transform response data from prompts |
 | action            | function     | N   | Action method to run when command is called |
 
 ### Experimental Properties
@@ -76,9 +78,9 @@ Instead of manually adding options to the `options` property, you can instead us
 Example:
 ```js
 const Test = new Command({
-  command: 'foo',
+  name: 'foo',
   usage: `
-  Usage: foo <command> [OPTIONS]
+  Usage: foo <name> [OPTIONS]
   Options:
     --debug STRING                    Run debug mode
     --log-level STRING                Set the log level
@@ -140,7 +142,7 @@ More details on option definitions can be found [here](https://github.com/75lb/c
 
 ```js
 const MyCommand = new Command({
-  command: 'my-command',
+  name: 'my-command',
   options: [
     {
       name: 'file',
@@ -162,13 +164,13 @@ Users can be prompted to answer questions to get data. The [Inquirer](https://ww
 
 Both `arguments` and `options` can be used to allow the end user to bypass specific prompts by providing a value in the command. The `name` property must match between the `options` or `arguments` and the `prompts` item.
 
-Additionally, the `promptTypes` property is used to add in custom prompt types.
+Additionally, the `promptTypes` property is used to add in custom prompt types and the `transform` property is used to update values before it sent to `action`.
 
 More details on prompt types and how they work can be found [here](https://www.npmjs.com/package/inquirer#objects)
 
 ```js
 const MyCommand = new Command({
-  command: 'my-command',
+  name: 'my-command',
   options: [
     {
       name: 'linter',
@@ -188,7 +190,11 @@ const MyCommand = new Command({
         return false
       }
     }
-  ]
+  ],
+  transform: async (data) => {
+    data._foo = 'bar'
+    return data
+  }
 })
 ```
 
@@ -205,7 +211,7 @@ You can output into the terminal manually using `console` or by using the built 
 
 ```js
 const MyCommand = new Command({
-  command: 'my-command',
+  name: 'my-command',
   action: async function (args, opts, all) {
     // will output a heading in bold with spacers
     this.heading('Example command output')
@@ -244,9 +250,52 @@ By using the `help` property, you can override this to display whatever text you
 
 ## Examples
 
+```js
+const MyCommand = new Command({
+  name: 'my-command',
+  argument: {
+    name: 'name'
+  },
+  options: [{
+    name: 'tags',
+    alias: 't',
+    type: String,
+    multiple: true
+  }, {
+    name: 'force',
+    alias: 'f',
+    type: Boolean
+  }, {
+    name: 'execute',
+    alias: 'x',
+    type: Boolean
+  }],
+  action: async function (args, opts, all) {
+    this.heading('Example Command')
+    this.out({ args, opts, all })
+  }
+})
+```
+
 ```bash
 my-command foo --tags Universal Item "Item Ref" -dx
 ```
+
+## Scripts
+
+### Build
+
+- **build** `npm run build` - Build from `./src` to `./dist` for ESM & CommonJS (with types)
+- **build:cjs** `npm run build:cjs` - Build from `./src` to `./dist` for CommonJS (with types)
+- **build:esm** `npm run build:esm` - Build from `./src` to `./dist` for ESM (with types)
+- **watch** `npm run watch` - Watch `./src` directory and build on file change to `./dist` for ESM & CommonJS (with types)
+
+### Lint
+
+- **lint** `npm run lint` - Lint all files in `./src`
+- **lint:fix** `npm run lint:fix` - Lint and fix all files in `./src`
+- **lint:prettier** `npm run lint:prettier` - Fix styling for all files in `./src`
+- **lint:prettier:ci** `npm run lint:prettier:ci` - CI style check
 
 ## Notes
 

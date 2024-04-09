@@ -1,7 +1,8 @@
 import * as chalk from 'chalk';
 
 interface CommandInterface {
-    command: string;
+    name: string;
+    command?: string;
     title?: string;
     description?: string;
     arguments?: CommandArgumentInterface;
@@ -11,8 +12,8 @@ interface CommandInterface {
     hidden?: boolean;
     usage?: string;
     version?: string | boolean;
-    subcommands?: [];
-    prompts?: [];
+    subcommands?: any[];
+    prompts?: any[];
     promptTypes?: {
         [key: string]: any;
     };
@@ -39,7 +40,8 @@ interface CommandOptionInterface {
  * Command class
  */
 declare class Command {
-    command: string;
+    name: string;
+    command?: string;
     title?: string;
     description?: string;
     version?: string;
@@ -48,7 +50,7 @@ declare class Command {
     hidden: boolean;
     arguments: CommandArgumentInterface;
     options: CommandOptionInterface[];
-    subcommands: any[];
+    subcommands: any;
     prompts: any[];
     promptTypes: {};
     fun: boolean;
@@ -117,6 +119,7 @@ declare class Command {
      * @returns {array}   Array of subcommands
      */
     getSubcommands(): any[];
+    transform: (data: any) => Promise<any>;
     /**
      * Method to trigger once processed
      *
