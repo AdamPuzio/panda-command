@@ -1,5 +1,6 @@
 export interface CommandInterface {
-  command: string
+  name: string
+  command?: string
   title?: string
   description?: string
   arguments?: CommandArgumentInterface
@@ -11,16 +12,18 @@ export interface CommandInterface {
   usage?: string
   version?: string | boolean
 
-  subcommands?: []
+  subcommands?: any[] | {[k:string]: any}
 
-  prompts?: []
+  prompts?: any[]
   promptTypes?: {
     [key: string]: any
   }
-  
-  fun?: boolean
 
-  action?: (args?, opts?, all?) => Promise<void|any>
+  fun?: boolean
+  autoHelp?: boolean
+  silent?: boolean
+
+  action?: (args?, opts?, all?) => Promise<void | any>
 }
 
 export interface CommandArgumentInterface {
@@ -29,7 +32,8 @@ export interface CommandArgumentInterface {
   required?: boolean
   defaultOption?: boolean
   multiple?: boolean
-  group?: string
+  group?: string | string[]
+  validate?: (v) => Promise<boolean>
 }
 
 export interface CommandOptionInterface {
@@ -37,5 +41,6 @@ export interface CommandOptionInterface {
   type: any
   alias?: string
   description?: string
-  group?: string
+  group?: string | string[]
+  validate?: (v) => Promise<boolean>
 }

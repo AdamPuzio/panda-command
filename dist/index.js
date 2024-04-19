@@ -37728,7 +37728,7 @@ var CommandParser = (_class = class _CommandParser {
     const lines = _CommandParser.parseText(text);
     _CommandParser.normalizeIndent(lines);
     const paramList = [];
-    const params = lines.reduce((result, line) => {
+    lines.reduce((result, line) => {
       const param = _CommandParser.extractParam(line.text);
       console.log({ param, result, line });
       if (param) {
@@ -37746,7 +37746,7 @@ var CommandParser = (_class = class _CommandParser {
     const lines = _CommandParser.parseText(text);
     _CommandParser.normalizeIndent(lines);
     const paramList = [];
-    const params = lines.reduce((result, line) => {
+    lines.reduce((result, line) => {
       const param = _CommandParser.extractParam(line.text);
       if (param) {
         paramList.push({ ...param });
@@ -37775,7 +37775,10 @@ var CommandParser = (_class = class _CommandParser {
     return lines;
   }
   static normalizeIndent(lines) {
-    const minIndent = lines.reduce((min, line) => Math.min(min, line.indent), 80);
+    const minIndent = lines.reduce(
+      (min, line) => Math.min(min, line.indent),
+      80
+    );
     lines.forEach((line) => line.indent -= minIndent);
     return lines;
   }
@@ -37783,7 +37786,7 @@ var CommandParser = (_class = class _CommandParser {
     if (!text.startsWith("-")) {
       return;
     }
-    const [_3, name1, name2, type, desc] = text.match(
+    const [name1, name2, type, desc] = text.match(
       /(-[\w.-]+),?\s*(-[\w.-]+)?=?\s*(bool|boolean|int|num|number|str|string)?\s(.*)/i
     ) || [];
     if (!name1) {
@@ -37806,7 +37809,12 @@ var CommandParser = (_class = class _CommandParser {
     const name2 = rawName2 && rawName2.replace(/^-*/, "");
     const dashes1 = rawName1 && rawName1.search(/[^-]/);
     const dashes2 = rawName1 && rawName1.search(/[^-]/);
-    const baseObj = { name: void 0, alias: void 0, type: void 0, description: void 0 };
+    const baseObj = {
+      name: void 0,
+      alias: void 0,
+      type: void 0,
+      description: void 0
+    };
     if (!name2)
       return { ...baseObj, name: name1 };
     if (dashes1 > dashes2)
@@ -37821,7 +37829,7 @@ var CommandParser = (_class = class _CommandParser {
     const argList = argStr.trim().split(" ");
     const args = [];
     argList.forEach((i) => {
-      const [name, type] = i.trim().slice(1, -1).split(":");
+      const [name] = i.trim().slice(1, -1).split(":");
       const arg = {
         name,
         subcommand: void 0,
@@ -37929,6 +37937,7 @@ var convertHslToRgb = (hsl) => {
 // src/command.ts
 var Command = (_class2 = class {
   
+  
   __init2() {this.title = ""}
   __init3() {this.description = ""}
   
@@ -37941,90 +37950,116 @@ var Command = (_class2 = class {
   __init6() {this.prompts = []}
   __init7() {this.promptTypes = {}}
   __init8() {this.fun = true}
-  __init9() {this._arguments = []}
-  __init10() {this._options = []}
-  __init11() {this._commandStack = []}
-  __init12() {this._subcommands = {}}
-  __init13() {this._type = "command"}
+  __init9() {this.silent = false}
+  __init10() {this.autoHelp = true}
+  __init11() {this._arguments = []}
+  __init12() {this._options = []}
+  __init13() {this._commandStack = []}
+  __init14() {this._subcommands = {}}
+  __init15() {this._type = "command"}
   /**
    * Command constructor
-   * 
-   * @param {object} cfg  Configuration object 
+   *
+   * @param {object} cfg  Configuration object
    * @returns {Command} Command instance (for chainability)
    */
-  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);
+  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);_class2.prototype.__init17.call(this);_class2.prototype.__init18.call(this);_class2.prototype.__init19.call(this);
     this.init(cfg);
     return this;
   }
   /**
    * Initialization method (called by constructor)
-   * 
-   * @param {object} cfg  Configuration object 
+   *
+   * @param {object} cfg  Configuration object
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg) {
-    Object.entries(cfg).forEach(([key, value]) => {
-      this[key] = value;
-    });
+    if (!cfg.command)
+      cfg.command = cfg.name;
+    Object.entries(cfg).forEach(([key, value]) => this[key] = value);
     this._commandStack.push(cfg.command);
     const usage = CommandParser.parseUsage(cfg.usage);
-    const opts = [].concat(usage, cfg.options, [{
-      name: "help",
-      alias: "h",
-      type: Boolean,
-      description: "Display help",
-      group: "_system"
-    }]);
+    const opts = [].concat(usage, cfg.options || []);
+    if (this.autoHelp)
+      opts.push({
+        name: "help",
+        alias: "h",
+        type: Boolean,
+        description: "Display help",
+        group: "_system"
+      });
     opts.forEach((o) => this.option(o));
     if (cfg.arguments && cfg.subcommands)
       throw new Error("Commands with subcommands cannot have arguments");
     if (cfg.arguments)
       this.argument(cfg.arguments);
-    this.getSubcommands();
-    Object.entries(this.promptTypes).forEach(([k, v]) => {
-      inquirer_default.registerPrompt(k, v);
-    });
+    const subcommands = cfg.subcommands;
+    if (Array.isArray(subcommands)) {
+      subcommands.forEach((subcmd) => this.subcommand(subcmd));
+    } else if (typeof subcommands === "object") {
+      Object.entries(subcommands).forEach(([k, v]) => this.subcommand(v, k));
+    }
+    Object.entries(this.promptTypes).forEach(([k, v]) => inquirer_default.registerPrompt(k, v));
     return this;
   }
   /**
    * Parse the command-line arguments
-   * 
+   *
    * @param {array} argv  Argv stack
    * @returns {Command}   Command instance (for chainability)
    */
   async parse(argv) {
+    let { data, details } = this.parseArgv(argv);
+    const { args, opts, unknown, tags } = details;
+    if (unknown && this.subcommands.length > 0) {
+      const testSubcommand = unknown[0];
+      if (this._subcommands[testSubcommand]) {
+        const cmd = this._subcommands[testSubcommand];
+        unknown.shift();
+        cmd.parse(unknown);
+        return cmd;
+      }
+    }
+    if (data.help === true)
+      return this.renderHelp();
+    await this.validateOptions(data);
+    if (this.prompts.length > 0) {
+      const answers = await inquirer_default.prompt(this.prompts, data);
+      let transform = this.transform(answers);
+      if (transform instanceof Promise)
+        transform = await transform;
+      data = details.data = transform;
+    }
+    await this.action(data, details);
+    return this;
+  }
+  /**
+   * Parse argv
+   * 
+   * @param {array} argv  argv array
+   * @returns {object}    object containing data & details
+   */
+  parseArgv(argv) {
     if (!argv)
       argv = process.argv;
     const argMix = [].concat(this._arguments, this._options);
     const primaryParse = (0, import_command_line_args.default)(argMix, { argv, stopAtFirstUnknown: true, camelCase: true });
     const args = primaryParse._args || {};
-    const all = Object.assign({}, primaryParse._all || primaryParse);
-    Object.keys(primaryParse._args || []).forEach((e) => delete all[e]);
-    const etc = {
-      argv: primaryParse._unknown || [],
-      opts: primaryParse,
+    const opts = primaryParse._opts || {};
+    const unknown = primaryParse._unknown || [];
+    const data = Object.assign({}, primaryParse._all || {});
+    const details = {
+      args,
+      opts,
+      unknown,
+      tags: primaryParse,
       data: {}
     };
-    const fnargs = [args, all, etc];
-    if (all.help === true)
-      return this.generateHelp();
-    if (this._arguments.length > 0) {
-      if (primaryParse._args.subcommand) {
-        const cmd = this._subcommands[primaryParse._args.subcommand];
-        cmd.parse(etc.argv);
-        return cmd;
-      }
-    }
-    await this.validateOptions(etc.opts._all);
-    if (this.prompts.length > 0) {
-      const answers = await inquirer_default.prompt(this.prompts, etc.opts._all);
-      etc.data = answers;
-    }
-    await this.action.apply(this, fnargs);
-    return this;
+    return { data, details };
   }
   /**
    * Validate any arguments or options that have a `validate` property
+   * 
    * @param {object} data   Data object to validate against
    * @returns {boolean}     True if successful
    */
@@ -38045,31 +38080,54 @@ var Command = (_class2 = class {
     return true;
   }
   /**
-   * Add an argument
+   * Apply a tag to the passed option or argument
    * 
+   * @param {object} obj  arg/opt object
+   * @param {string} tag  tag to be applied
+   * @returns {object}    updated arg/opt object
+   */
+  tag(obj, tag) {
+    let groups = [tag];
+    if (obj.group) {
+      if (Array.isArray(obj.group)) {
+        groups = [].concat(groups, obj.group);
+      } else {
+        groups.push(obj.group);
+      }
+    }
+    obj.group = groups;
+    return obj;
+  }
+  /**
+   * Add an argument
+   *
    * @param {object} arg  Argument object
-   * @returns 
+   * @returns {Command}   Command instance (for chainability)
    */
   argument(arg) {
-    arg = { ...{
-      name: arg.name,
-      subcommand: false,
-      defaultOption: true,
-      multiple: false,
-      group: "_args"
-    }, ...arg };
+    arg = {
+      ...{
+        name: arg.name,
+        subcommand: false,
+        defaultOption: true,
+        multiple: false
+      },
+      ...arg
+    };
+    arg = this.tag(arg, "_args");
     this._arguments.push(arg);
     return this;
   }
   /**
    * Add an option
-   * 
+   *
    * @param {object} opt  Option object
    * @returns {Command}   Command instance (for chainability)
    */
   option(opt) {
     if (!opt.name)
       throw new Error("Options require name");
+    opt = this.tag(opt, "_opts");
     const match = this._options.findIndex(({ name }) => name === opt.name);
     if (match !== -1) {
       this._options[match] = { ...this._options[match], ...opt };
@@ -38080,52 +38138,35 @@ var Command = (_class2 = class {
   }
   /**
    * Add a subcommand
-   * 
+   *
    * @param {Command} command Subcommand instance
    * @returns {Command} Command instance (for chainability)
    */
-  subcommand(command) {
+  subcommand(command, name) {
     command._commandStack = [].concat(this._commandStack, command._commandStack);
-    this._subcommands[command.command] = command;
+    this._subcommands[name || command.command] = command;
     return this;
   }
   /**
    * Retrieve the list of commands
-   * 
+   *
    * @returns {array}   Array of commands in command stack
    */
   getCommandStack() {
     return this._commandStack;
   }
-  /**
-   * Retrieve the list of available subcommands
-   * 
-   * @returns {array}   Array of subcommands
-   */
-  getSubcommands() {
-    if (this.subcommands.length === 0)
-      return [];
-    this.argument({
-      name: "subcommand",
-      subcommand: true,
-      defaultOption: true
-    });
-    const subcommands = [];
-    this.subcommands.forEach((subcommand) => this.subcommand(subcommand));
-    return subcommands;
-  }
+  __init16() {this.transform = async (data) => data}
   /**
    * Method to trigger once processed
-   * 
-   * @param {object} args   Arguments
-   * @param {object} opts   Options
-   * @param {object} etc    Complete object of parsed data
+   *
+   * @param {object} data       raw data object
+   * @param {object} details    complete object of parsed data
    */
-  async action(args, opts, etc) {
-    this.generateHelp();
+  async action(data, details) {
+    this.renderHelp();
   }
   /**
-   * Generate and output help
+   * Generate help text
    */
   generateHelp() {
     const sections = [];
@@ -38133,18 +38174,37 @@ var Command = (_class2 = class {
     const additionalHelp = this.additionalHelp ? "\n\n" + this.additionalHelp : "";
     if (this.help) {
       content += "\n" + this.help + additionalHelp;
-      sections.push({ header: this.title || `Command: ${this.command}`, content });
+      sections.push({
+        header: this.title || `Command: ${this.command}`,
+        content
+      });
     } else {
       content += additionalHelp;
-      sections.push({ header: this.title || `Command: ${this.command}`, content });
-      const argStr = CommandParser.generateArgString(this._commandStack, this._arguments);
+      sections.push({
+        header: this.title || `Command: ${this.command}`,
+        content
+      });
+      const argStr = CommandParser.generateArgString(
+        this._commandStack,
+        this._arguments
+      );
       sections.push({ header: "Usage", content: argStr });
       if (this._options.length > 0)
         sections.push({ header: "Options", optionList: this._options });
       if (this.subcommands.length > 0)
-        sections.push({ header: "Commands", content: CommandParser.generateCommandList(this._subcommands) });
+        sections.push({
+          header: "Commands",
+          content: CommandParser.generateCommandList(this._subcommands)
+        });
     }
-    console.log(command_line_usage_default(sections));
+    return command_line_usage_default(sections);
+  }
+  /**
+   * Output help text and exit
+   */
+  renderHelp() {
+    const help = this.generateHelp();
+    console.log(help);
     process.exit();
   }
   style(styles3) {
@@ -38160,10 +38220,12 @@ var Command = (_class2 = class {
     return call;
   }
   log(msg, opts = {}) {
+    if (this.silent)
+      return;
     const xopts = { styles: null, type: "log", ...opts };
     console[xopts.type](this.style(xopts.styles)(msg));
   }
-  __init14() {this.out = (msg, opts = {}) => this.log(msg, opts)}
+  __init17() {this.out = (msg, opts = {}) => this.log(msg, opts)}
   error(err, msg, exit = true) {
     const cfg = { type: "error", styles: ["red"] };
     if (msg)
@@ -38174,8 +38236,11 @@ var Command = (_class2 = class {
     if (exit)
       process.exit();
   }
-  __init15() {this.spacer = () => console.log()}
-  __init16() {this.rainbow = (text) => rainbow(text)}
+  __init18() {this.spacer = () => {
+    if (!this.silent)
+      console.log();
+  }}
+  __init19() {this.rainbow = (text) => rainbow(text)}
   heading(msg, opts = {}) {
     const xopts = { styles: "bold", ...opts };
     if ((/* @__PURE__ */ new Date()).getMonth() === 5 && this.fun === true)
