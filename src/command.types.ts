@@ -12,7 +12,7 @@ export interface CommandInterface {
   usage?: string
   version?: string | boolean
 
-  subcommands?: any[]
+  subcommands?: any[] | {[k:string]: any}
 
   prompts?: any[]
   promptTypes?: {
@@ -20,6 +20,8 @@ export interface CommandInterface {
   }
 
   fun?: boolean
+  autoHelp?: boolean
+  silent?: boolean
 
   action?: (args?, opts?, all?) => Promise<void | any>
 }
@@ -30,7 +32,8 @@ export interface CommandArgumentInterface {
   required?: boolean
   defaultOption?: boolean
   multiple?: boolean
-  group?: string
+  group?: string | string[]
+  validate?: (v) => Promise<boolean>
 }
 
 export interface CommandOptionInterface {
@@ -38,5 +41,6 @@ export interface CommandOptionInterface {
   type: any
   alias?: string
   description?: string
-  group?: string
+  group?: string | string[]
+  validate?: (v) => Promise<boolean>
 }

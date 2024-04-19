@@ -31,7 +31,8 @@ Now you're ready to create a Command:
 ```js
 const MyCommand = new Command({
   name: 'my-command',
-  action: async (args, opts, all) => {
+  options: [],
+  action: async (data, details) => {
     // do your thing
   }
 }).parse()
@@ -59,11 +60,47 @@ From here, you can run your script in 1 of 4 ways:
 | additionalHelp    | string       | N   | Additional text to output in `--help` |
 | hidden            | boolean      | N   | Hides the command from `--help` if `true` |
 | version           | string       | N   | Semver version of the command |
-| subcommands       | array        | N   | List of subcommands to be parsed |
+| subcommands       | array|object | N   | List of subcommands to be parsed |
 | prompts           | array        | N   | List of prompts to run |
 | promptTypes       | object       | N   | Key/value list of prompt types available to `prompts` |
 | transform         | function     | N   | Method to transform response data from prompts |
 | action            | function     | N   | Action method to run when command is called |
+
+```js
+new Command({
+  name: 'create-foo',
+  // used as the command called when it's a subcommand
+  command: 'foo:create',
+  // used as the help menu title
+  title: 'Create Foo',
+  // used in help menu
+  description: 'Create a new Foo',
+  // argument handler
+  arguments: {
+    name: 'name'
+  },
+  // list of options to parse
+  options: [],
+  // flag to be hidden from help menu
+  hidden: false,
+  // list of subcommands
+  //   if array, use the `command` property as the subcommand
+  //   if object, use the key as the subcommand
+  subcommands: [],
+  // list of prompts to ask user
+  prompts: [],
+  // list of custom prompt types available to `prompts`
+  promptTypes: {},
+  // method to transform data before reaching action
+  transform: async (data) => {
+    data.type = 'based'
+    return data
+  },
+  action: async (data, details) => {
+    // perform your actions
+  }
+})
+```
 
 ### Experimental Properties
 
@@ -212,7 +249,7 @@ You can output into the terminal manually using `console` or by using the built 
 ```js
 const MyCommand = new Command({
   name: 'my-command',
-  action: async function (args, opts, all) {
+  action: async function (data, details) {
     // will output a heading in bold with spacers
     this.heading('Example command output')
     // a simple output
@@ -270,15 +307,15 @@ const MyCommand = new Command({
     alias: 'x',
     type: Boolean
   }],
-  action: async function (args, opts, all) {
+  action: async function (data, details) {
     this.heading('Example Command')
-    this.out({ args, opts, all })
+    this.out({ data, details })
   }
 })
 ```
 
 ```bash
-my-command foo --tags Universal Item "Item Ref" -dx
+my-command foo --tags Universal Item "Item Ref" -fx
 ```
 
 ## Scripts
@@ -296,6 +333,10 @@ my-command foo --tags Universal Item "Item Ref" -dx
 - **lint:fix** `npm run lint:fix` - Lint and fix all files in `./src`
 - **lint:prettier** `npm run lint:prettier` - Fix styling for all files in `./src`
 - **lint:prettier:ci** `npm run lint:prettier:ci` - CI style check
+
+### Test
+
+- **test** `npm test` - Run tests
 
 ## Notes
 

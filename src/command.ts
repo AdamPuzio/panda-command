@@ -35,6 +35,8 @@ export class Command {
   promptTypes = {}
 
   fun = true
+  silent = false
+  autoHelp = true
 
   _arguments = []
   _options = []
@@ -61,39 +63,46 @@ export class Command {
    * @returns {Command}   Command instance (for chainability)
    */
   init(cfg: CommandInterface) {
+    // generate command from name if it isn't provided
     if (!cfg.command) cfg.command = cfg.name
-    Object.entries(cfg).forEach(([key, value]) => {
-      this[key] = value
-    })
+    // set each provided value
+    Object.entries(cfg).forEach(([key, value]) => this[key] = value)
 
+    // add the command to the command stack
     this._commandStack.push(cfg.command)
 
     // parse the help string
     const usage = CommandParser.parseUsage(cfg.usage)
 
-    const opts = [].concat(usage, cfg.options || [], [
-      {
-        name: 'help',
-        alias: 'h',
-        type: Boolean,
-        description: 'Display help',
-        group: '_system',
-      },
-    ])
+    const opts = [].concat(usage, cfg.options || [])
+    // add help option
+    if (this.autoHelp) opts.push({
+      name: 'help',
+      alias: 'h',
+      type: Boolean,
+      description: 'Display help',
+      group: '_system',
+    })
+    // register options
     opts.forEach(o => this.option(o))
 
     // throw error if both subcommands & arguments exist
     if (cfg.arguments && cfg.subcommands)
       throw new Error('Commands with subcommands cannot have arguments')
 
+    // register argument
     if (cfg.arguments) this.argument(cfg.arguments)
 
-    this.getSubcommands()
+    // register subcommands
+    const subcommands = cfg.subcommands
+    if (Array.isArray(subcommands)) {
+      subcommands.forEach(subcmd => this.subcommand(subcmd))
+    } else if (typeof subcommands === 'object') {
+      Object.entries(subcommands).forEach(([k, v]:[string, any]) => this.subcommand(v, k))
+    }
 
-    // register any prompts
-    Object.entries(this.promptTypes).forEach(([k, v]) => {
-      inquirer.registerPrompt(k, v)
-    })
+    // register prompts
+    Object.entries(this.promptTypes).forEach(([k, v]) => inquirer.registerPrompt(k, v))
 
     return this
   }
@@ -105,56 +114,68 @@ export class Command {
    * @returns {Command}   Command instance (for chainability)
    */
   async parse(argv?: string[]) {
-    if (!argv) argv = process.argv
-
-    const argMix = [].concat(this._arguments, this._options)
-    const primaryParse = clargs(argMix, {
-      argv,
-      stopAtFirstUnknown: true,
-      camelCase: true,
-    })
-    const args = primaryParse._args || {}
-
-    const all = Object.assign({}, primaryParse._all || primaryParse)
-
-    Object.keys(primaryParse._args || []).forEach(e => delete all[e])
-    const etc = {
-      argv: primaryParse._unknown || [],
-      opts: primaryParse,
-      data: {},
-    }
-    const fnargs: [any, any, any] = [args, all, etc]
+    let { data, details } = this.parseArgv(argv)
+    const { args, opts, unknown, tags } = details
 
     // check for possibility of subcommand being called
-    if (primaryParse._unknown && this.subcommands.length > 0) {
-      const testSubcommand = primaryParse._unknown[0]
+    if (unknown && this.subcommands.length > 0) {
+      const testSubcommand = unknown[0]
       if (this._subcommands[testSubcommand]) {
         const cmd = this._subcommands[testSubcommand]
-        etc.argv.shift() // shift off subcommand from argv
-        cmd.parse(etc.argv)
+        unknown.shift() // shift off subcommand from argv
+        cmd.parse(unknown)
         return cmd
       }
     }
 
-    if (all.help === true) return this.generateHelp()
+    if (data.help === true) return this.renderHelp()
 
-    await this.validateOptions(etc.opts._all)
+    await this.validateOptions(data)
 
     if (this.prompts.length > 0) {
-      const answers = await inquirer.prompt(this.prompts, etc.opts._all)
+      const answers = await inquirer.prompt(this.prompts, data)
       // run the transform event handler, skip if false
       let transform = this.transform(answers)
       if (transform instanceof Promise) transform = await transform
-      etc.data = transform
+      data = details.data = transform
     }
 
-    await this.action(...fnargs)
+    await this.action(data, details)
 
     return this
   }
 
   /**
+   * Parse argv
+   * 
+   * @param {array} argv  argv array
+   * @returns {object}    object containing data & details
+   */
+  parseArgv (argv?:string[]) {
+    if (!argv) argv = process.argv
+
+    // combine arguments and options, then parse
+    const argMix = [].concat(this._arguments, this._options)
+    const primaryParse = clargs(argMix, { argv, stopAtFirstUnknown: true, camelCase: true })
+    const args = primaryParse._args || {}
+    const opts = primaryParse._opts || {}
+    const unknown = primaryParse._unknown || []
+
+    const data = Object.assign({}, primaryParse._all || {})
+
+    const details = {
+      args,
+      opts,
+      unknown,
+      tags: primaryParse,
+      data: {}
+    }
+    return { data, details }
+  }
+
+  /**
    * Validate any arguments or options that have a `validate` property
+   * 
    * @param {object} data   Data object to validate against
    * @returns {boolean}     True if successful
    */
@@ -179,10 +200,30 @@ export class Command {
   }
 
   /**
+   * Apply a tag to the passed option or argument
+   * 
+   * @param {object} obj  arg/opt object
+   * @param {string} tag  tag to be applied
+   * @returns {object}    updated arg/opt object
+   */
+  tag(obj, tag:string) {
+    let groups = [tag]
+    if (obj.group) {
+      if (Array.isArray(obj.group)) {
+        groups = [].concat(groups, obj.group)
+      } else {
+        groups.push(obj.group)
+      }
+    }
+    obj.group = groups
+    return obj
+  }
+
+  /**
    * Add an argument
    *
    * @param {object} arg  Argument object
-   * @returns
+   * @returns {Command}   Command instance (for chainability)
    */
   argument(arg: CommandArgumentInterface) {
     arg = {
@@ -191,10 +232,10 @@ export class Command {
         subcommand: false,
         defaultOption: true,
         multiple: false,
-        group: '_args',
       },
       ...arg,
     }
+    arg = this.tag(arg, '_args')
 
     this._arguments.push(arg)
 
@@ -209,6 +250,8 @@ export class Command {
    */
   option(opt: CommandOptionInterface) {
     if (!opt.name) throw new Error('Options require name') // throw error if no name provided
+
+    opt = this.tag(opt, '_opts')
 
     // check if the named option already exists
     const match = this._options.findIndex(({ name }) => name === opt.name)
@@ -228,9 +271,9 @@ export class Command {
    * @param {Command} command Subcommand instance
    * @returns {Command} Command instance (for chainability)
    */
-  subcommand(command: Command) {
+  subcommand(command: Command, name?) {
     command._commandStack = [].concat(this._commandStack, command._commandStack)
-    this._subcommands[command.command] = command
+    this._subcommands[name || command.command] = command
     return this
   }
 
@@ -243,38 +286,21 @@ export class Command {
     return this._commandStack
   }
 
-  /**
-   * Retrieve the list of available subcommands
-   *
-   * @returns {array}   Array of subcommands
-   */
-  getSubcommands() {
-    if (this.subcommands.length === 0) return []
-
-    const subcommands = []
-
-    // add each subcommand
-    this.subcommands.forEach(subcommand => this.subcommand(subcommand))
-
-    return subcommands
-  }
-
   transform = async data => data
 
   /**
    * Method to trigger once processed
    *
-   * @param {object} args   Arguments
-   * @param {object} opts   Options
-   * @param {object} etc    Complete object of parsed data
+   * @param {object} data       raw data object
+   * @param {object} details    complete object of parsed data
    */
-  async action(args, opts, etc) {
+  async action(data, details) {
     // if action isn't overwritten, output help
-    this.generateHelp()
+    this.renderHelp()
   }
 
   /**
-   * Generate and output help
+   * Generate help text
    */
   generateHelp() {
     const sections = []
@@ -312,7 +338,15 @@ export class Command {
           content: CommandParser.generateCommandList(this._subcommands),
         })
     }
-    console.log(clusage(sections))
+    return clusage(sections)
+  }
+
+  /**
+   * Output help text and exit
+   */
+  renderHelp() {
+    const help = this.generateHelp()
+    console.log(help)
     process.exit()
   }
 
@@ -328,6 +362,7 @@ export class Command {
   }
 
   log(msg: any, opts = {}) {
+    if (this.silent) return
     const xopts = { styles: null, type: 'log', ...opts }
     console[xopts.type](this.style(xopts.styles)(msg))
   }
@@ -344,7 +379,7 @@ export class Command {
     if (exit) process.exit()
   }
 
-  spacer = () => console.log()
+  spacer = () => { if (!this.silent) console.log() }
 
   rainbow = (text: string) => rainbow(text)
 
