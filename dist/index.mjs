@@ -37956,6 +37956,8 @@ var Command = class {
   prompts = [];
   promptTypes = {};
   fun = true;
+  silent = false;
+  autoHelp = true;
   _arguments = [];
   _options = [];
   _commandStack = [];
@@ -37980,29 +37982,34 @@ var Command = class {
   init(cfg) {
     if (!cfg.command)
       cfg.command = cfg.name;
-    Object.entries(cfg).forEach(([key, value]) => {
-      this[key] = value;
-    });
+    Object.entries(cfg).forEach(([key, value]) => this[key] = value);
     this._commandStack.push(cfg.command);
     const usage = CommandParser.parseUsage(cfg.usage);
-    const opts = [].concat(usage, cfg.options || [], [
-      {
+    const opts = [].concat(usage, cfg.options || []);
+    if (this.autoHelp)
+      opts.push({
         name: "help",
         alias: "h",
         type: Boolean,
         description: "Display help",
         group: "_system"
-      }
-    ]);
+      });
     opts.forEach((o) => this.option(o));
     if (cfg.arguments && cfg.subcommands)
       throw new Error("Commands with subcommands cannot have arguments");
     if (cfg.arguments)
       this.argument(cfg.arguments);
-    this.getSubcommands();
-    Object.entries(this.promptTypes).forEach(([k, v]) => {
-      inquirer_default.registerPrompt(k, v);
-    });
+    const subcommands = cfg.subcommands;
+    if (Array.isArray(subcommands)) {
+      subcommands.forEach((subcmd) => this.subcommand(subcmd));
+    } else if (typeof subcommands === "object") {
+      Object.entries(subcommands).forEach(
+        ([k, v]) => this.subcommand(v, k)
+      );
+    }
+    Object.entries(this.promptTypes).forEach(
+      ([k, v]) => inquirer_default.registerPrompt(k, v)
+    );
     return this;
   }
   /**
@@ -38012,6 +38019,39 @@ var Command = class {
    * @returns {Command}   Command instance (for chainability)
    */
   async parse(argv) {
+    const parse = this.parseArgv(argv);
+    let { data } = parse;
+    const { details } = parse;
+    const unknown = details.unknown;
+    if (unknown && this.subcommands.length > 0) {
+      const testSubcommand = unknown[0];
+      if (this._subcommands[testSubcommand]) {
+        const cmd = this._subcommands[testSubcommand];
+        unknown.shift();
+        cmd.parse(unknown);
+        return cmd;
+      }
+    }
+    if (data.help === true)
+      return this.renderHelp();
+    await this.validateOptions(data);
+    if (this.prompts.length > 0) {
+      const answers = await inquirer_default.prompt(this.prompts, data);
+      let transform = this.transform(answers);
+      if (transform instanceof Promise)
+        transform = await transform;
+      data = details.data = transform;
+    }
+    await this.action(data, details);
+    return this;
+  }
+  /**
+   * Parse argv
+   *
+   * @param {array} argv  argv array
+   * @returns {object}    object containing data & details
+   */
+  parseArgv(argv) {
     if (!argv)
       argv = process.argv;
     const argMix = [].concat(this._arguments, this._options);
@@ -38021,38 +38061,21 @@ var Command = class {
       camelCase: true
     });
     const args = primaryParse._args || {};
-    const all = Object.assign({}, primaryParse._all || primaryParse);
-    Object.keys(primaryParse._args || []).forEach((e) => delete all[e]);
-    const etc = {
-      argv: primaryParse._unknown || [],
-      opts: primaryParse,
+    const opts = primaryParse._opts || {};
+    const unknown = primaryParse._unknown || [];
+    const data = Object.assign({}, primaryParse._all || {});
+    const details = {
+      args,
+      opts,
+      unknown,
+      tags: primaryParse,
       data: {}
     };
-    const fnargs = [args, all, etc];
-    if (primaryParse._unknown && this.subcommands.length > 0) {
-      const testSubcommand = primaryParse._unknown[0];
-      if (this._subcommands[testSubcommand]) {
-        const cmd = this._subcommands[testSubcommand];
-        etc.argv.shift();
-        cmd.parse(etc.argv);
-        return cmd;
-      }
-    }
-    if (all.help === true)
-      return this.generateHelp();
-    await this.validateOptions(etc.opts._all);
-    if (this.prompts.length > 0) {
-      const answers = await inquirer_default.prompt(this.prompts, etc.opts._all);
-      let transform = this.transform(answers);
-      if (transform instanceof Promise)
-        transform = await transform;
-      etc.data = transform;
-    }
-    await this.action(...fnargs);
-    return this;
+    return { data, details };
   }
   /**
    * Validate any arguments or options that have a `validate` property
+   *
    * @param {object} data   Data object to validate against
    * @returns {boolean}     True if successful
    */
@@ -38073,10 +38096,29 @@ var Command = class {
     return true;
   }
   /**
+   * Apply a tag to the passed option or argument
+   *
+   * @param {object} obj  arg/opt object
+   * @param {string} tag  tag to be applied
+   * @returns {object}    updated arg/opt object
+   */
+  tag(obj, tag) {
+    let groups = [tag];
+    if (obj.group) {
+      if (Array.isArray(obj.group)) {
+        groups = [].concat(groups, obj.group);
+      } else {
+        groups.push(obj.group);
+      }
+    }
+    obj.group = groups;
+    return obj;
+  }
+  /**
    * Add an argument
    *
    * @param {object} arg  Argument object
-   * @returns
+   * @returns {Command}   Command instance (for chainability)
    */
   argument(arg) {
     arg = {
@@ -38084,11 +38126,11 @@ var Command = class {
         name: arg.name,
         subcommand: false,
         defaultOption: true,
-        multiple: false,
-        group: "_args"
+        multiple: false
       },
       ...arg
     };
+    arg = this.tag(arg, "_args");
     this._arguments.push(arg);
     return this;
   }
@@ -38101,6 +38143,7 @@ var Command = class {
   option(opt) {
     if (!opt.name)
       throw new Error("Options require name");
+    opt = this.tag(opt, "_opts");
     const match = this._options.findIndex(({ name }) => name === opt.name);
     if (match !== -1) {
       this._options[match] = { ...this._options[match], ...opt };
@@ -38115,9 +38158,9 @@ var Command = class {
    * @param {Command} command Subcommand instance
    * @returns {Command} Command instance (for chainability)
    */
-  subcommand(command) {
+  subcommand(command, name) {
     command._commandStack = [].concat(this._commandStack, command._commandStack);
-    this._subcommands[command.command] = command;
+    this._subcommands[name || command.command] = command;
     return this;
   }
   /**
@@ -38128,31 +38171,18 @@ var Command = class {
   getCommandStack() {
     return this._commandStack;
   }
-  /**
-   * Retrieve the list of available subcommands
-   *
-   * @returns {array}   Array of subcommands
-   */
-  getSubcommands() {
-    if (this.subcommands.length === 0)
-      return [];
-    const subcommands = [];
-    this.subcommands.forEach((subcommand) => this.subcommand(subcommand));
-    return subcommands;
-  }
   transform = async (data) => data;
   /**
    * Method to trigger once processed
    *
-   * @param {object} args   Arguments
-   * @param {object} opts   Options
-   * @param {object} etc    Complete object of parsed data
+   * @param {object} data       raw data object
+   * @param {object} details    complete object of parsed data
    */
-  async action(args, opts, etc) {
-    this.generateHelp();
+  async action(data, details) {
+    this.renderHelp();
   }
   /**
-   * Generate and output help
+   * Generate help text
    */
   generateHelp() {
     const sections = [];
@@ -38183,7 +38213,14 @@ var Command = class {
           content: CommandParser.generateCommandList(this._subcommands)
         });
     }
-    console.log(command_line_usage_default(sections));
+    return command_line_usage_default(sections);
+  }
+  /**
+   * Output help text and exit
+   */
+  renderHelp() {
+    const help = this.generateHelp();
+    console.log(help);
     process.exit();
   }
   style(styles3) {
@@ -38199,6 +38236,8 @@ var Command = class {
     return call;
   }
   log(msg, opts = {}) {
+    if (this.silent)
+      return;
     const xopts = { styles: null, type: "log", ...opts };
     console[xopts.type](this.style(xopts.styles)(msg));
   }
@@ -38213,7 +38252,10 @@ var Command = class {
     if (exit)
       process.exit();
   }
-  spacer = () => console.log();
+  spacer = () => {
+    if (!this.silent)
+      console.log();
+  };
   rainbow = (text) => rainbow(text);
   heading(msg, opts = {}) {
     const xopts = { styles: "bold", ...opts };

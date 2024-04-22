@@ -12,12 +12,16 @@ interface CommandInterface {
     hidden?: boolean;
     usage?: string;
     version?: string | boolean;
-    subcommands?: any[];
+    subcommands?: any[] | {
+        [k: string]: any;
+    };
     prompts?: any[];
     promptTypes?: {
         [key: string]: any;
     };
     fun?: boolean;
+    autoHelp?: boolean;
+    silent?: boolean;
     action?: (args?: any, opts?: any, all?: any) => Promise<void | any>;
 }
 interface CommandArgumentInterface {
@@ -26,14 +30,16 @@ interface CommandArgumentInterface {
     required?: boolean;
     defaultOption?: boolean;
     multiple?: boolean;
-    group?: string;
+    group?: string | string[];
+    validate?: (v: any) => Promise<boolean>;
 }
 interface CommandOptionInterface {
     name: string;
     type: any;
     alias?: string;
     description?: string;
-    group?: string;
+    group?: string | string[];
+    validate?: (v: any) => Promise<boolean>;
 }
 
 /**
@@ -54,6 +60,8 @@ declare class Command {
     prompts: any[];
     promptTypes: {};
     fun: boolean;
+    silent: boolean;
+    autoHelp: boolean;
     _arguments: any[];
     _options: any[];
     _commandStack: any[];
@@ -81,16 +89,41 @@ declare class Command {
      */
     parse(argv?: string[]): Promise<any>;
     /**
+     * Parse argv
+     *
+     * @param {array} argv  argv array
+     * @returns {object}    object containing data & details
+     */
+    parseArgv(argv?: string[]): {
+        data: any;
+        details: {
+            args: any;
+            opts: any;
+            unknown: any;
+            tags: any;
+            data: {};
+        };
+    };
+    /**
      * Validate any arguments or options that have a `validate` property
+     *
      * @param {object} data   Data object to validate against
      * @returns {boolean}     True if successful
      */
     validateOptions(data: any): Promise<true | void>;
     /**
+     * Apply a tag to the passed option or argument
+     *
+     * @param {object} obj  arg/opt object
+     * @param {string} tag  tag to be applied
+     * @returns {object}    updated arg/opt object
+     */
+    tag(obj: any, tag: string): any;
+    /**
      * Add an argument
      *
      * @param {object} arg  Argument object
-     * @returns
+     * @returns {Command}   Command instance (for chainability)
      */
     argument(arg: CommandArgumentInterface): this;
     /**
@@ -106,32 +139,29 @@ declare class Command {
      * @param {Command} command Subcommand instance
      * @returns {Command} Command instance (for chainability)
      */
-    subcommand(command: Command): this;
+    subcommand(command: Command, name?: any): this;
     /**
      * Retrieve the list of commands
      *
      * @returns {array}   Array of commands in command stack
      */
     getCommandStack(): any[];
-    /**
-     * Retrieve the list of available subcommands
-     *
-     * @returns {array}   Array of subcommands
-     */
-    getSubcommands(): any[];
     transform: (data: any) => Promise<any>;
     /**
      * Method to trigger once processed
      *
-     * @param {object} args   Arguments
-     * @param {object} opts   Options
-     * @param {object} etc    Complete object of parsed data
+     * @param {object} data       raw data object
+     * @param {object} details    complete object of parsed data
      */
-    action(args: any, opts: any, etc: any): Promise<void>;
+    action(data: any, details: any): Promise<void>;
     /**
-     * Generate and output help
+     * Generate help text
      */
-    generateHelp(): void;
+    generateHelp(): any;
+    /**
+     * Output help text and exit
+     */
+    renderHelp(): void;
     style(styles: any): chalk.ChalkInstance;
     log(msg: any, opts?: {}): void;
     out: (msg: any, opts?: {}) => void;
