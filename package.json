@@ -41,6 +41,7 @@
     "command",
     "command-line",
     "console",
+    "panda",
     "parser",
     "script",
     "terminal"

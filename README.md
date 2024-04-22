@@ -242,6 +242,33 @@ Notes:
 
 The `subcommands` property accepts an array of other Commands. It will read them and apply their `command` property as a subcommand to the existing Command.
 
+Subcommands can be added in as an array or an object.
+
+- When added as an array, it will use each subcommand's `command` property as the subcommand to use.
+- When added as an object, the key will represent the subcommand.
+
+This provides for greater flexibility in importing commands from different places.
+
+```js
+import { Command } from '@panda/command'
+
+import {
+  Subcommand01,
+  Subcommand02
+} from './subcommands'
+
+export const ExampleCommand = new Command({
+  name: 'example',
+
+  subcommands: [
+    Subcommand01,
+    Subcommand02
+  ]
+}).parse()
+
+export default ExampleCommand
+```
+
 ### Output Methods
 
 You can output into the terminal manually using `console` or by using the built in prompt features.
@@ -337,6 +364,7 @@ my-command foo --tags Universal Item "Item Ref" -fx
 ### Test
 
 - **test** `npm test` - Run tests
+- **test:coverage** `npm run test:coverage` - Run tests with coverage information
 
 ## Notes
 
@@ -359,10 +387,18 @@ bin/my-command.js
 ```bash
 npm run my-command -- --debug
 ```
+### Running Scripts Directly
+
+When running a script directly (without using NPM or Node), be sure to include the following in your script:
+
+```
+#!/usr/bin/env node
+```
 
 ## Roadmap
 
 - Parse `usage` for additional information, like `command` and `arguments`
+- Create `CommandCenter` as a way to create a primary bin file
 
 ## Included Libraries
 

@@ -38003,9 +38003,13 @@ var Command = class {
     if (Array.isArray(subcommands)) {
       subcommands.forEach((subcmd) => this.subcommand(subcmd));
     } else if (typeof subcommands === "object") {
-      Object.entries(subcommands).forEach(([k, v]) => this.subcommand(v, k));
+      Object.entries(subcommands).forEach(
+        ([k, v]) => this.subcommand(v, k)
+      );
     }
-    Object.entries(this.promptTypes).forEach(([k, v]) => inquirer_default.registerPrompt(k, v));
+    Object.entries(this.promptTypes).forEach(
+      ([k, v]) => inquirer_default.registerPrompt(k, v)
+    );
     return this;
   }
   /**
@@ -38015,8 +38019,10 @@ var Command = class {
    * @returns {Command}   Command instance (for chainability)
    */
   async parse(argv) {
-    let { data, details } = this.parseArgv(argv);
-    const { args, opts, unknown, tags } = details;
+    const parse = this.parseArgv(argv);
+    let { data } = parse;
+    const { details } = parse;
+    const unknown = details.unknown;
     if (unknown && this.subcommands.length > 0) {
       const testSubcommand = unknown[0];
       if (this._subcommands[testSubcommand]) {
@@ -38041,7 +38047,7 @@ var Command = class {
   }
   /**
    * Parse argv
-   * 
+   *
    * @param {array} argv  argv array
    * @returns {object}    object containing data & details
    */
@@ -38049,7 +38055,11 @@ var Command = class {
     if (!argv)
       argv = process.argv;
     const argMix = [].concat(this._arguments, this._options);
-    const primaryParse = (0, import_command_line_args.default)(argMix, { argv, stopAtFirstUnknown: true, camelCase: true });
+    const primaryParse = (0, import_command_line_args.default)(argMix, {
+      argv,
+      stopAtFirstUnknown: true,
+      camelCase: true
+    });
     const args = primaryParse._args || {};
     const opts = primaryParse._opts || {};
     const unknown = primaryParse._unknown || [];
@@ -38065,7 +38075,7 @@ var Command = class {
   }
   /**
    * Validate any arguments or options that have a `validate` property
-   * 
+   *
    * @param {object} data   Data object to validate against
    * @returns {boolean}     True if successful
    */
@@ -38087,7 +38097,7 @@ var Command = class {
   }
   /**
    * Apply a tag to the passed option or argument
-   * 
+   *
    * @param {object} obj  arg/opt object
    * @param {string} tag  tag to be applied
    * @returns {object}    updated arg/opt object

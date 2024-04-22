@@ -1,15 +1,13 @@
 import { vi, describe, test, expect } from 'vitest'
-import { Command } from '../command'
 
 import {
   BasicCommand,
   OptsOnlyCommand,
   ArgAndOptsCommand,
-  MultiArgsCommand
+  MultiArgsCommand,
 } from './examples'
 
 describe('parseArgv', async () => {
-
   test('basic', async () => {
     const argv = []
     const rs = BasicCommand.parseArgv(argv)
@@ -22,10 +20,10 @@ describe('parseArgv', async () => {
         tags: {
           _all: {},
           _opts: {},
-          _system: {}
+          _system: {},
         },
-        data: {}
-      }
+        data: {},
+      },
     })
   })
 
@@ -42,10 +40,10 @@ describe('parseArgv', async () => {
           _all: {},
           _opts: {},
           _unknown: argv,
-          _system: {}
+          _system: {},
         },
-        data: {}
-      }
+        data: {},
+      },
     })
   })
 
@@ -55,7 +53,7 @@ describe('parseArgv', async () => {
     const vals = {
       boolean: true,
       string: 'str',
-      number: 2
+      number: 2,
     }
     expect(rs).toEqual({
       data: vals,
@@ -66,10 +64,10 @@ describe('parseArgv', async () => {
         tags: {
           _all: vals,
           _opts: vals,
-          _system: {}
+          _system: {},
         },
-        data: {}
-      }
+        data: {},
+      },
     })
   })
 
@@ -79,7 +77,7 @@ describe('parseArgv', async () => {
     const vals = {
       boolean: true,
       string: 'str',
-      number: 2
+      number: 2,
     }
     expect(rs).toEqual({
       data: vals,
@@ -91,10 +89,10 @@ describe('parseArgv', async () => {
           _all: vals,
           _args: {},
           _opts: vals,
-          _system: {}
+          _system: {},
         },
-        data: {}
-      }
+        data: {},
+      },
     })
   })
 
@@ -102,7 +100,7 @@ describe('parseArgv', async () => {
     const names = ['biggie', 'tupac', 'kendrick']
     const rs = MultiArgsCommand.parseArgv(names)
     const vals = {
-      name: names
+      name: names,
     }
     expect(rs).toEqual({
       data: vals,
@@ -114,13 +112,12 @@ describe('parseArgv', async () => {
           _all: vals,
           _args: vals,
           _opts: {},
-          _system: {}
+          _system: {},
         },
-        data: {}
-      }
+        data: {},
+      },
     })
   })
-
 })
 
 describe('validateOptions', async () => {
@@ -140,7 +137,7 @@ describe('validateOptions', async () => {
     const vals = {
       boolean: true,
       string: 'str',
-      number: 2
+      number: 2,
     }
     const rs = await OptsOnlyCommand.validateOptions(vals)
     expect(rs).toEqual(true)
@@ -151,14 +148,13 @@ describe('validateOptions', async () => {
     const vals = {
       boolean: 'str',
       string: true,
-      number: '4'
+      number: '4',
     }
     try {
-      const rs = await OptsOnlyCommand.validateOptions(vals)
+      await OptsOnlyCommand.validateOptions(vals)
     } catch (e) {
       expect(e).toBe("Invalid value for 'boolean': str")
       expect(process.exit).toBeCalledWith(0)
     }
   })
-
 })

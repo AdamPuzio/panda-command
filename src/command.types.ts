@@ -12,7 +12,7 @@ export interface CommandInterface {
   usage?: string
   version?: string | boolean
 
-  subcommands?: any[] | {[k:string]: any}
+  subcommands?: any[] | { [k: string]: any }
 
   prompts?: any[]
   promptTypes?: {
