@@ -1,12 +1,12 @@
 export interface CommandInterface {
   name: string
   command?: string
-  title?: string
   description?: string
   arguments?: CommandArgumentInterface
   options?: CommandOptionInterface[]
 
-  help?: string
+  helpTitle?: string
+  helpText?: string
   helpAdd?: string
   hidden?: boolean
   usage?: string

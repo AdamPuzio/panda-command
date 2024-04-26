@@ -37938,10 +37938,9 @@ var convertHslToRgb = (hsl) => {
 var Command = (_class2 = class {
   
   
-  __init2() {this.title = ""}
-  __init3() {this.description = ""}
+  __init2() {this.description = ""}
   
-  
+  __init3() {this.helpTitle = ""}
   
   
   
@@ -37951,19 +37950,20 @@ var Command = (_class2 = class {
   __init7() {this.promptTypes = {}}
   __init8() {this.fun = true}
   __init9() {this.silent = false}
-  __init10() {this.autoHelp = true}
-  __init11() {this._arguments = []}
-  __init12() {this._options = []}
-  __init13() {this._commandStack = []}
-  __init14() {this._subcommands = {}}
-  __init15() {this._type = "command"}
+  __init10() {this.hidden = false}
+  __init11() {this.autoHelp = true}
+  __init12() {this._arguments = []}
+  __init13() {this._options = []}
+  __init14() {this._commandStack = []}
+  __init15() {this._subcommands = {}}
+  __init16() {this._type = "command"}
   /**
    * Command constructor
    *
    * @param {object} cfg  Configuration object
    * @returns {Command} Command instance (for chainability)
    */
-  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);_class2.prototype.__init17.call(this);_class2.prototype.__init18.call(this);_class2.prototype.__init19.call(this);
+  constructor(cfg) {;_class2.prototype.__init2.call(this);_class2.prototype.__init3.call(this);_class2.prototype.__init4.call(this);_class2.prototype.__init5.call(this);_class2.prototype.__init6.call(this);_class2.prototype.__init7.call(this);_class2.prototype.__init8.call(this);_class2.prototype.__init9.call(this);_class2.prototype.__init10.call(this);_class2.prototype.__init11.call(this);_class2.prototype.__init12.call(this);_class2.prototype.__init13.call(this);_class2.prototype.__init14.call(this);_class2.prototype.__init15.call(this);_class2.prototype.__init16.call(this);_class2.prototype.__init17.call(this);_class2.prototype.__init18.call(this);_class2.prototype.__init19.call(this);_class2.prototype.__init20.call(this);
     this.init(cfg);
     return this;
   }
@@ -38026,7 +38026,7 @@ var Command = (_class2 = class {
         return cmd;
       }
     }
-    if (data.help === true)
+    if (this.autoHelp && data.help === true)
       return this.renderHelp();
     await this.validateOptions(data);
     if (this.prompts.length > 0) {
@@ -38165,7 +38165,7 @@ var Command = (_class2 = class {
   getCommandStack() {
     return this._commandStack;
   }
-  __init16() {this.transform = async (data) => data}
+  __init17() {this.transform = async (data) => data}
   /**
    * Method to trigger once processed
    *
@@ -38181,17 +38181,17 @@ var Command = (_class2 = class {
   generateHelp() {
     const sections = [];
     let content = this.description;
-    const additionalHelp = this.additionalHelp ? "\n\n" + this.additionalHelp : "";
-    if (this.help) {
-      content += "\n" + this.help + additionalHelp;
+    const addedHelp = this.addedHelp ? "\n\n" + this.addedHelp : "";
+    if (this.helpText) {
+      content += "\n" + this.helpText + addedHelp;
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content
       });
     } else {
-      content += additionalHelp;
+      content += addedHelp;
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content
       });
       const argStr = CommandParser.generateArgString(
@@ -38235,7 +38235,7 @@ var Command = (_class2 = class {
     const xopts = { styles: null, type: "log", ...opts };
     console[xopts.type](this.style(xopts.styles)(msg));
   }
-  __init17() {this.out = (msg, opts = {}) => this.log(msg, opts)}
+  __init18() {this.out = (msg, opts = {}) => this.log(msg, opts)}
   error(err, msg, exit = true) {
     const cfg = { type: "error", styles: ["red"] };
     if (msg)
@@ -38246,11 +38246,11 @@ var Command = (_class2 = class {
     if (exit)
       process.exit();
   }
-  __init18() {this.spacer = () => {
+  __init19() {this.spacer = () => {
     if (!this.silent)
       console.log();
   }}
-  __init19() {this.rainbow = (text) => rainbow(text)}
+  __init20() {this.rainbow = (text) => rainbow(text)}
   heading(msg, opts = {}) {
     const xopts = { styles: "bold", ...opts };
     if ((/* @__PURE__ */ new Date()).getMonth() === 5 && this.fun === true)

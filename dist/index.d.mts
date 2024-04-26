@@ -3,11 +3,11 @@ import * as chalk from 'chalk';
 interface CommandInterface {
     name: string;
     command?: string;
-    title?: string;
     description?: string;
     arguments?: CommandArgumentInterface;
     options?: CommandOptionInterface[];
-    help?: string;
+    helpTitle?: string;
+    helpText?: string;
     helpAdd?: string;
     hidden?: boolean;
     usage?: string;
@@ -48,12 +48,11 @@ interface CommandOptionInterface {
 declare class Command {
     name: string;
     command?: string;
-    title?: string;
     description?: string;
     version?: string;
-    help: string;
-    additionalHelp: string;
-    hidden: boolean;
+    helpTitle?: string;
+    helpText: string;
+    addedHelp: string;
     arguments: CommandArgumentInterface;
     options: CommandOptionInterface[];
     subcommands: any;
@@ -61,6 +60,7 @@ declare class Command {
     promptTypes: {};
     fun: boolean;
     silent: boolean;
+    hidden: boolean;
     autoHelp: boolean;
     _arguments: any[];
     _options: any[];
