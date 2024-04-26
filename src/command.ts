@@ -18,13 +18,12 @@ import { rainbow } from './convert'
 export class Command {
   name: string
   command?: string
-  title?: string = ''
   description?: string = ''
   version?: string
 
-  help: string
-  additionalHelp: string
-  hidden: boolean
+  helpTitle?: string = ''
+  helpText: string
+  addedHelp: string
 
   arguments: CommandArgumentInterface
   options: CommandOptionInterface[] = []
@@ -34,9 +33,10 @@ export class Command {
   prompts = []
   promptTypes = {}
 
-  fun = true
-  silent = false
-  autoHelp = true
+  fun: boolean = true
+  silent: boolean = false
+  hidden: boolean = false
+  autoHelp: boolean = true
 
   _arguments = []
   _options = []
@@ -135,7 +135,7 @@ export class Command {
       }
     }
 
-    if (data.help === true) return this.renderHelp()
+    if (this.autoHelp && data.help === true) return this.renderHelp()
 
     await this.validateOptions(data)
 
@@ -316,21 +316,19 @@ export class Command {
   generateHelp() {
     const sections = []
     let content = this.description
-    const additionalHelp = this.additionalHelp
-      ? '\n\n' + this.additionalHelp
-      : ''
+    const addedHelp = this.addedHelp ? '\n\n' + this.addedHelp : ''
 
-    if (this.help) {
+    if (this.helpText) {
       // help is already provided, so use that
-      content += '\n' + this.help + additionalHelp
+      content += '\n' + this.helpText + addedHelp
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content,
       })
     } else {
-      content += additionalHelp
+      content += addedHelp
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content,
       })
 

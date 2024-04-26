@@ -37944,12 +37944,11 @@ var convertHslToRgb = (hsl) => {
 var Command = class {
   name;
   command;
-  title = "";
   description = "";
   version;
-  help;
-  additionalHelp;
-  hidden;
+  helpTitle = "";
+  helpText;
+  addedHelp;
   arguments;
   options = [];
   subcommands = [];
@@ -37957,6 +37956,7 @@ var Command = class {
   promptTypes = {};
   fun = true;
   silent = false;
+  hidden = false;
   autoHelp = true;
   _arguments = [];
   _options = [];
@@ -38032,7 +38032,7 @@ var Command = class {
         return cmd;
       }
     }
-    if (data.help === true)
+    if (this.autoHelp && data.help === true)
       return this.renderHelp();
     await this.validateOptions(data);
     if (this.prompts.length > 0) {
@@ -38187,17 +38187,17 @@ var Command = class {
   generateHelp() {
     const sections = [];
     let content = this.description;
-    const additionalHelp = this.additionalHelp ? "\n\n" + this.additionalHelp : "";
-    if (this.help) {
-      content += "\n" + this.help + additionalHelp;
+    const addedHelp = this.addedHelp ? "\n\n" + this.addedHelp : "";
+    if (this.helpText) {
+      content += "\n" + this.helpText + addedHelp;
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content
       });
     } else {
-      content += additionalHelp;
+      content += addedHelp;
       sections.push({
-        header: this.title || `Command: ${this.command}`,
+        header: this.helpTitle || `Command: ${this.command}`,
         content
       });
       const argStr = CommandParser.generateArgString(
