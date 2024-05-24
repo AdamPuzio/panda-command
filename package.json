@@ -1,0 +1,58 @@
+{
+  "name": "@panda/command",
+  "version": "0.2.0",
+  "description": "Panda Command class",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": [
+    "args",
+    "argv",
+    "bin",
+    "cli",
+    "command",
+    "command-line",
+    "console",
+    "panda",
+    "parser",
+    "script",
+    "terminal"
+  ],
+  "scripts": {
+    "dev": "npm run build -- --watch src",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build:cjs": "tsup src/index.ts --format cjs --dts",
+    "build:esm": "tsup src/index.ts --format esm --dts",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "lint:prettier-script": "prettier ./src \"**/*.{js,jsx,cjs,mjs,ts,tsx}\" --cache",
+    "lint:prettier": "npm run lint:prettier-script -- --write",
+    "lint:prettier:ci": "npm run lint:prettier-script -- --check",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.2.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.12.8",
+    "chalk": "^5.3.0",
+    "cliui": "^8.0.1",
+    "command-line-args": "^5.2.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "inquirer": "^9.2.20",
+    "prettier": "3.2.5",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0",
+    "vitest": "^1.6.0"
+  }
+}
