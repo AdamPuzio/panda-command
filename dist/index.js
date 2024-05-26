@@ -36421,7 +36421,7 @@ var CommandParser = class {
           text: `${subcommand.name}`,
           padding: [0, 0, 0, indent]
         }, {
-          text: `${subcommand.description}`,
+          text: subcommand.description || "",
           padding: [0, 0, 0, 0]
         });
       }
@@ -36437,7 +36437,7 @@ var CommandParser = class {
           text: `${arg.name}`,
           padding: [0, 0, 0, indent]
         }, {
-          text: `${arg.description}`,
+          text: arg.description || "",
           padding: [0, 0, 0, 0]
         });
       }
@@ -36458,7 +36458,7 @@ var CommandParser = class {
           text: `${optAlias}--${option.name} ${optString}`,
           padding: [0, 0, 0, indent]
         }, {
-          text: `${option.description}${defaultValue}`,
+          text: `${option.description || ""}${defaultValue}`,
           padding: [0, 0, 0, 0]
         });
       }
@@ -36476,7 +36476,7 @@ var CommandParser = class {
           text: `${flagAlias}--${flag.name}`,
           padding: [0, 0, 0, indent]
         }, {
-          text: flag.description,
+          text: flag.description || "",
           padding: [0, 0, 0, 0]
         });
       }
@@ -36650,19 +36650,21 @@ var Command = (_class = class _Command {
       _unknown: altUnknown = [],
       ...tags
     } = primaryParse;
-    if (this._argumentStrategy === "positional") {
-      const updates = this.parsePositionalArgs({ data, args, unknown });
-      data = updates.data;
-      unknown = updates.unknown;
-    } else if (this._argumentStrategy === "subcommand") {
-      const cmd = unknown.shift();
-      if (!this._subcommands[cmd])
-        throw new Error(`Unknown subcommand: ${cmd}`);
-      subcommand = {
-        name: cmd,
-        argv: unknown
-      };
-      unknown = [];
+    if (unknown.length > 0) {
+      if (this._argumentStrategy === "positional") {
+        const updates = this.parsePositionalArgs({ data, args, unknown });
+        data = updates.data;
+        unknown = updates.unknown;
+      } else if (this._argumentStrategy === "subcommand") {
+        const cmd = unknown.shift();
+        if (!this._subcommands[cmd])
+          throw new Error(`Unknown subcommand: ${cmd}`);
+        subcommand = {
+          name: cmd,
+          argv: unknown
+        };
+        unknown = [];
+      }
     }
     const details = {
       args,

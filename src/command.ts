@@ -181,18 +181,20 @@ export class Command {
       ...tags
     } = primaryParse
 
-    if (this._argumentStrategy === 'positional') {
-      const updates = this.parsePositionalArgs({ data, args, unknown })
-      data = updates.data
-      unknown = updates.unknown
-    } else if (this._argumentStrategy === 'subcommand') {
-      const cmd = unknown.shift()
-      if (!this._subcommands[cmd]) throw new Error(`Unknown subcommand: ${cmd}`)
-      subcommand = {
-        name: cmd,
-        argv: unknown
+    if (unknown.length > 0) {
+      if (this._argumentStrategy === 'positional') {
+        const updates = this.parsePositionalArgs({ data, args, unknown })
+        data = updates.data
+        unknown = updates.unknown
+      } else if (this._argumentStrategy === 'subcommand') {
+        const cmd = unknown.shift()
+        if (!this._subcommands[cmd]) throw new Error(`Unknown subcommand: ${cmd}`)
+        subcommand = {
+          name: cmd,
+          argv: unknown
+        }
+        unknown = []
       }
-      unknown = []
     }
 
     const details = {
