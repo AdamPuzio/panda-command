@@ -36620,7 +36620,6 @@ var Command = class _Command {
       throw new Error("Cannot use both arguments and subcommands");
     if (subcommandCount > 0)
       this._argumentStrategy = "subcommand";
-    this._arguments.forEach((arg) => definitions.push(arg));
     this._options.forEach((opt) => definitions.push(opt));
     this._flags.forEach((flag) => definitions.push(flag));
     this._definitions = definitions;
