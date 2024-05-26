@@ -38,6 +38,7 @@ export interface CommandOptionProps extends CommandBaseParameterProps {
 export interface CommandFlagProps extends CommandBaseParameterProps {
   alias?: string
   global?: boolean
+  default?: boolean
 }
 
 export interface CommandPromptProps {

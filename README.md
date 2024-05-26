@@ -4,6 +4,8 @@
 
 Panda thinks of commands as a way to collect data from a user (via passed parameters and/or prompts) and execute a task or series of tasks based upon that data.
 
+For more detailed documentation, visit the [`@panda/command` documentation website](https://adampuzio.github.io/panda-docs/docs/entities/command/overview)
+
 ## Highlights
 
 - Customizable arguments, options and flags

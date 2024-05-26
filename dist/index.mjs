@@ -36470,7 +36470,7 @@ var CommandParser = class {
       }
     }
     if (command.flags.length > 0) {
-      if (!mergeOptions) {
+      if (!mergeOptions || command.options.length === 0) {
         ui2.div({
           text: `${bold("Flags:")}`,
           padding: [1, 0, 0, 0]
@@ -36542,6 +36542,7 @@ var Command = class _Command {
   prompts = [];
   subcommands = [];
   promptTypes = {};
+  autoHelp = true;
   silent = false;
   fun = true;
   _arguments = [];
@@ -36584,6 +36585,7 @@ var Command = class _Command {
     args.forEach((arg) => this.argument(arg));
     this.options.forEach((opt) => this.option(opt));
     this.flags.forEach((flag) => this.flag(flag));
+    this.registerAutoFlags();
     const subcommands = this.subcommands;
     if (Array.isArray(subcommands)) {
       subcommands.forEach((subcmd) => this.subcommand(subcmd));
@@ -36618,6 +36620,9 @@ var Command = class _Command {
       throw new Error("Cannot use both arguments and subcommands");
     if (subcommandCount > 0)
       this._argumentStrategy = "subcommand";
+    this._arguments.forEach((arg) => definitions.push(arg));
+    this._options.forEach((opt) => definitions.push(opt));
+    this._flags.forEach((flag) => definitions.push(flag));
     this._definitions = definitions;
     return definitions;
   }
@@ -36832,6 +36837,7 @@ var Command = class _Command {
     description = "",
     required = false,
     global: global2 = false,
+    default: defaultValue = false,
     tags = [],
     validate = async () => true
   }) {
@@ -36840,10 +36846,12 @@ var Command = class _Command {
     tags.push("_opts");
     this._flags.push({
       name,
+      type: Boolean,
       alias,
       description,
       required,
       global: global2,
+      defaultValue,
       group: tags,
       validate
     });
@@ -36927,6 +36935,22 @@ var Command = class _Command {
     }
     obj.group = groups;
     return obj;
+  }
+  /**
+   * Register auto flags
+   * 
+   * @memberof Command
+   */
+  registerAutoFlags() {
+    if (this.autoHelp) {
+      this.flag({
+        name: "help",
+        alias: "h",
+        description: "Show help",
+        global: true,
+        tags: ["_system"]
+      });
+    }
   }
   /**
    * Parse a data type

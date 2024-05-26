@@ -38,19 +38,20 @@ export class Command {
 
   promptTypes: {[key:string]: PromptConstructor} = {}
 
+  autoHelp = true
   silent = false
   fun = true
 
-  private _arguments = []
-  private _options = []
-  private _flags = []
-  private _prompts: Prompt = []
-  private _subcommands = {}
+  protected _arguments = []
+  protected _options = []
+  protected _flags = []
+  protected _prompts: Prompt = []
+  protected _subcommands = {}
 
-  private _definitions = []
+  protected _definitions = []
 
   // none, single, multiple, positional, subcommand 
-  private _argumentStrategy = 'none'
+  protected _argumentStrategy = 'none'
 
   /**
    * Constructor
@@ -92,6 +93,7 @@ export class Command {
     this.options.forEach(opt => this.option(opt))
     // register flags
     this.flags.forEach(flag => this.flag(flag))
+    this.registerAutoFlags()
     // register subcommands
     const subcommands = this.subcommands
     if (Array.isArray(subcommands)) {
@@ -136,6 +138,10 @@ export class Command {
       throw new Error('Cannot use both arguments and subcommands')
 
     if (subcommandCount > 0) this._argumentStrategy = 'subcommand'
+
+    this._arguments.forEach(arg => definitions.push(arg))
+    this._options.forEach(opt => definitions.push(opt))
+    this._flags.forEach(flag => definitions.push(flag))
 
     this._definitions = definitions
 
@@ -364,6 +370,7 @@ export class Command {
     description = '',
     required = false,
     global = false,
+    default: defaultValue = false,
     tags = [],
     validate = async () => true
   }:CommandFlagProps) {
@@ -371,10 +378,12 @@ export class Command {
     tags.push('_opts')
     this._flags.push({
       name,
+      type: Boolean,
       alias,
       description,
       required,
       global,
+      defaultValue,
       group: tags,
       validate
     })
@@ -464,6 +473,23 @@ export class Command {
     }
     obj.group = groups
     return obj
+  }
+
+  /**
+   * Register auto flags
+   * 
+   * @memberof Command
+   */
+  registerAutoFlags () {
+    if (this.autoHelp) {
+      this.flag({
+        name: 'help',
+        alias: 'h',
+        description: 'Show help',
+        global: true,
+        tags: ['_system']
+      })
+    }
   }
 
   /**

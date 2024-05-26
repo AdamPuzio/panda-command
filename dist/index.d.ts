@@ -1,5 +1,5 @@
 import * as chalk from 'chalk';
-import { PromptConstructor } from '@types/inquirer';
+import { PromptConstructor, Prompt } from '@types/inquirer';
 
 interface CommandProps {
     name: string;
@@ -37,6 +37,7 @@ interface CommandOptionProps extends CommandBaseParameterProps {
 interface CommandFlagProps extends CommandBaseParameterProps {
     alias?: string;
     global?: boolean;
+    default?: boolean;
 }
 interface CommandPromptProps {
     name: string;
@@ -77,15 +78,16 @@ declare class Command {
     promptTypes: {
         [key: string]: PromptConstructor;
     };
+    autoHelp: boolean;
     silent: boolean;
     fun: boolean;
-    private _arguments;
-    private _options;
-    private _flags;
-    private _prompts;
-    private _subcommands;
-    private _definitions;
-    private _argumentStrategy;
+    protected _arguments: any[];
+    protected _options: any[];
+    protected _flags: any[];
+    protected _prompts: Prompt;
+    protected _subcommands: {};
+    protected _definitions: any[];
+    protected _argumentStrategy: string;
     /**
      * Constructor
      *
@@ -197,7 +199,7 @@ declare class Command {
      * @returns {Command}    Command instance (for chainability)
      * @memberof Command
      */
-    flag({ name, alias, description, required, global, tags, validate }: CommandFlagProps): this;
+    flag({ name, alias, description, required, global, default: defaultValue, tags, validate }: CommandFlagProps): this;
     /**
      * Add a prompt
      *
@@ -224,6 +226,12 @@ declare class Command {
      * @memberof Command
      */
     tag(obj: any, tag: string): any;
+    /**
+     * Register auto flags
+     *
+     * @memberof Command
+     */
+    registerAutoFlags(): void;
     /**
      * Parse a data type
      *

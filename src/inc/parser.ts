@@ -110,7 +110,7 @@ export class CommandParser {
     }
 
     if (command.flags.length > 0) {
-      if (!mergeOptions) {
+      if (!mergeOptions || command.options.length === 0) {
         ui.div({
           text: `${bold('Flags:')}`,
           padding: [1, 0, 0, 0],

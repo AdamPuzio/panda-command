@@ -36464,7 +36464,7 @@ var CommandParser = class {
       }
     }
     if (command.flags.length > 0) {
-      if (!mergeOptions) {
+      if (!mergeOptions || command.options.length === 0) {
         ui2.div({
           text: `${bold("Flags:")}`,
           padding: [1, 0, 0, 0]
@@ -36536,23 +36536,24 @@ var Command = (_class = class _Command {
   __init8() {this.prompts = []}
   __init9() {this.subcommands = []}
   __init10() {this.promptTypes = {}}
-  __init11() {this.silent = false}
-  __init12() {this.fun = true}
-  __init13() {this._arguments = []}
-  __init14() {this._options = []}
-  __init15() {this._flags = []}
-  __init16() {this._prompts = []}
-  __init17() {this._subcommands = {}}
-  __init18() {this._definitions = []}
+  __init11() {this.autoHelp = true}
+  __init12() {this.silent = false}
+  __init13() {this.fun = true}
+  __init14() {this._arguments = []}
+  __init15() {this._options = []}
+  __init16() {this._flags = []}
+  __init17() {this._prompts = []}
+  __init18() {this._subcommands = {}}
+  __init19() {this._definitions = []}
   // none, single, multiple, positional, subcommand 
-  __init19() {this._argumentStrategy = "none"}
+  __init20() {this._argumentStrategy = "none"}
   /**
    * Constructor
    * 
    * @param {CommandProps} cfg  Command configuration
    * @memberof Command
    */
-  constructor(cfg) {;_class.prototype.__init2.call(this);_class.prototype.__init3.call(this);_class.prototype.__init4.call(this);_class.prototype.__init5.call(this);_class.prototype.__init6.call(this);_class.prototype.__init7.call(this);_class.prototype.__init8.call(this);_class.prototype.__init9.call(this);_class.prototype.__init10.call(this);_class.prototype.__init11.call(this);_class.prototype.__init12.call(this);_class.prototype.__init13.call(this);_class.prototype.__init14.call(this);_class.prototype.__init15.call(this);_class.prototype.__init16.call(this);_class.prototype.__init17.call(this);_class.prototype.__init18.call(this);_class.prototype.__init19.call(this);_class.prototype.__init20.call(this);_class.prototype.__init21.call(this);_class.prototype.__init22.call(this);_class.prototype.__init23.call(this);
+  constructor(cfg) {;_class.prototype.__init2.call(this);_class.prototype.__init3.call(this);_class.prototype.__init4.call(this);_class.prototype.__init5.call(this);_class.prototype.__init6.call(this);_class.prototype.__init7.call(this);_class.prototype.__init8.call(this);_class.prototype.__init9.call(this);_class.prototype.__init10.call(this);_class.prototype.__init11.call(this);_class.prototype.__init12.call(this);_class.prototype.__init13.call(this);_class.prototype.__init14.call(this);_class.prototype.__init15.call(this);_class.prototype.__init16.call(this);_class.prototype.__init17.call(this);_class.prototype.__init18.call(this);_class.prototype.__init19.call(this);_class.prototype.__init20.call(this);_class.prototype.__init21.call(this);_class.prototype.__init22.call(this);_class.prototype.__init23.call(this);_class.prototype.__init24.call(this);
     this.initialize(cfg);
     return this;
   }
@@ -36578,6 +36579,7 @@ var Command = (_class = class _Command {
     args.forEach((arg) => this.argument(arg));
     this.options.forEach((opt) => this.option(opt));
     this.flags.forEach((flag) => this.flag(flag));
+    this.registerAutoFlags();
     const subcommands = this.subcommands;
     if (Array.isArray(subcommands)) {
       subcommands.forEach((subcmd) => this.subcommand(subcmd));
@@ -36612,6 +36614,9 @@ var Command = (_class = class _Command {
       throw new Error("Cannot use both arguments and subcommands");
     if (subcommandCount > 0)
       this._argumentStrategy = "subcommand";
+    this._arguments.forEach((arg) => definitions.push(arg));
+    this._options.forEach((opt) => definitions.push(opt));
+    this._flags.forEach((flag) => definitions.push(flag));
     this._definitions = definitions;
     return definitions;
   }
@@ -36730,7 +36735,7 @@ var Command = (_class = class _Command {
    * @memberof Command
    * @async
    */
-  __init20() {this.transform = async (data) => data}
+  __init21() {this.transform = async (data) => data}
   /**
    * 
    * @param {object} data     data object
@@ -36826,6 +36831,7 @@ var Command = (_class = class _Command {
     description = "",
     required = false,
     global: global2 = false,
+    default: defaultValue = false,
     tags = [],
     validate = async () => true
   }) {
@@ -36834,10 +36840,12 @@ var Command = (_class = class _Command {
     tags.push("_opts");
     this._flags.push({
       name,
+      type: Boolean,
       alias,
       description,
       required,
       global: global2,
+      defaultValue,
       group: tags,
       validate
     });
@@ -36921,6 +36929,22 @@ var Command = (_class = class _Command {
     }
     obj.group = groups;
     return obj;
+  }
+  /**
+   * Register auto flags
+   * 
+   * @memberof Command
+   */
+  registerAutoFlags() {
+    if (this.autoHelp) {
+      this.flag({
+        name: "help",
+        alias: "h",
+        description: "Show help",
+        global: true,
+        tags: ["_system"]
+      });
+    }
   }
   /**
    * Parse a data type
@@ -37093,7 +37117,7 @@ var Command = (_class = class _Command {
    * @memberof Command
    * @alias log
    */
-  __init21() {this.out = (msg, opts = {}) => this.log(msg, opts)}
+  __init22() {this.out = (msg, opts = {}) => this.log(msg, opts)}
   /**
    * Log an error
    * 
@@ -37117,7 +37141,7 @@ var Command = (_class = class _Command {
    * 
    * @memberof Command
    */
-  __init22() {this.spacer = () => {
+  __init23() {this.spacer = () => {
     if (!this.silent)
       console.log();
   }}
@@ -37128,7 +37152,7 @@ var Command = (_class = class _Command {
    * @returns {string}      Rainbowified text
    * @memberof Command
    */
-  __init23() {this.rainbow = (text) => rainbow(text)}
+  __init24() {this.rainbow = (text) => rainbow(text)}
   /**
    * Log a heading
    * 
