@@ -79,6 +79,7 @@ declare class Command {
         [key: string]: PromptConstructor;
     };
     autoHelp: boolean;
+    autoVersion: boolean;
     silent: boolean;
     fun: boolean;
     protected _arguments: any[];

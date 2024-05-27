@@ -38,9 +38,10 @@ export class Command {
 
   promptTypes: {[key:string]: PromptConstructor} = {}
 
-  autoHelp = true
-  silent = false
-  fun = true
+  autoHelp:boolean = true
+  autoVersion:boolean = true
+  silent:boolean = false
+  fun:boolean = true
 
   protected _arguments = []
   protected _options = []
@@ -259,6 +260,7 @@ export class Command {
     if (details.subcommand) return this.runSubcommand(details.subcommand.name, details.subcommand.argv)
 
     if (data.help) return this.outputHelp()
+    if (data.version) return this.log(this.version)
 
     data = await this.runPrompts(data)
     data = await this.transformFn(data)
@@ -487,6 +489,15 @@ export class Command {
         name: 'help',
         alias: 'h',
         description: 'Show help',
+        global: true,
+        tags: ['_system']
+      })
+    }
+    if (this.autoVersion && this.version) {
+      this.flag({
+        name: 'version',
+        alias: 'v',
+        description: 'Show version',
         global: true,
         tags: ['_system']
       })

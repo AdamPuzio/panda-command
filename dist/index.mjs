@@ -36543,6 +36543,7 @@ var Command = class _Command {
   subcommands = [];
   promptTypes = {};
   autoHelp = true;
+  autoVersion = true;
   silent = false;
   fun = true;
   _arguments = [];
@@ -36730,6 +36731,8 @@ var Command = class _Command {
       return this.runSubcommand(details.subcommand.name, details.subcommand.argv);
     if (data.help)
       return this.outputHelp();
+    if (data.version)
+      return this.log(this.version);
     data = await this.runPrompts(data);
     data = await this.transformFn(data);
     return this.action(data, details);
@@ -36948,6 +36951,15 @@ var Command = class _Command {
         name: "help",
         alias: "h",
         description: "Show help",
+        global: true,
+        tags: ["_system"]
+      });
+    }
+    if (this.autoVersion && this.version) {
+      this.flag({
+        name: "version",
+        alias: "v",
+        description: "Show version",
         global: true,
         tags: ["_system"]
       });
