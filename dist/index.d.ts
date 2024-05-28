@@ -1,6 +1,9 @@
 import * as chalk from 'chalk';
 import { PromptConstructor, Prompt } from '@types/inquirer';
 
+type CommandData = {
+    [key: string]: any;
+};
 interface CommandProps {
     name: string;
     command?: string;
@@ -13,6 +16,15 @@ interface CommandProps {
     subcommands?: Array<CommandProps | Command | typeof Command> | {
         [key: string]: CommandProps | Command | typeof Command;
     };
+    promptTypes?: {
+        [key: string]: PromptConstructor;
+    };
+    autoHelp?: boolean;
+    autoVersion?: boolean;
+    silent?: boolean;
+    fun?: boolean;
+    transform?: (data: CommandData) => Promise<CommandData>;
+    action?: (data: CommandData, details: CommandData) => Promise<any | void>;
 }
 interface CommandBaseParameterProps {
     name: string;
@@ -53,8 +65,6 @@ interface CommandPromptProps {
     _overrides?: {
         [key: string]: any;
     };
-}
-interface CommandPromptTypeProps {
 }
 
 /**
@@ -358,4 +368,4 @@ declare class Command {
     heading(msg: any, opts?: {}): void;
 }
 
-export { Command, type CommandArgumentProps, type CommandBaseParameterProps, type CommandFlagProps, type CommandOptionProps, type CommandPromptProps, type CommandPromptTypeProps, type CommandProps };
+export { Command, type CommandArgumentProps, type CommandBaseParameterProps, type CommandFlagProps, type CommandOptionProps, type CommandPromptProps, type CommandProps };
