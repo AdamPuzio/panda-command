@@ -1,13 +1,11 @@
-
-
 export class ChainCommand {
   constructor() {}
 
-  description(text) {
+  description() {
     return this
   }
 
-  action () {}
+  action() {}
 
-  parse () {}
+  parse() {}
 }

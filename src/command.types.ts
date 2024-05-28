@@ -2,7 +2,7 @@ import { Command } from './command'
 // @ts-expect-error needed for dual-bundling
 import { PromptConstructor } from '@types/inquirer'
 
-type CommandData = {[key:string]: any}
+type CommandData = { [key: string]: any }
 
 export interface CommandProps {
   name: string
@@ -13,8 +13,10 @@ export interface CommandProps {
   options?: CommandOptionProps[]
   flags?: CommandFlagProps[]
   prompts?: CommandPromptProps[]
-  subcommands?: Array<CommandProps | Command | typeof Command> | {[key:string]: CommandProps | Command | typeof Command}
-  promptTypes?: {[key:string]: PromptConstructor}
+  subcommands?:
+    | Array<CommandProps | Command | typeof Command>
+    | { [key: string]: CommandProps | Command | typeof Command }
+  promptTypes?: { [key: string]: PromptConstructor }
   autoHelp?: boolean
   autoVersion?: boolean
   silent?: boolean

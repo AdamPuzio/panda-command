@@ -1,64 +1,46 @@
-import { vi, describe, test, expect } from 'vitest'
+import { describe, test, expect } from 'vitest'
 
 import { Command } from '../command'
 
-
-const exampleSubcommand = new Command({
-  name: 'subcommand-instance',
-  description: 'This is an example subcommand instance'
-})
-
-const usageText = `
-Usage: foo <name> [OPTIONS]
-
-Options:
-  --debug STRING                    Run debug mode
-  --log-level STRING                Set the log level
-  --log-format STRING               Set the logging output format
-  -v, --version BOOLEAN             Show version
-  --help BOOLEAN                    Show this help
-`
-
 describe('usage', async () => {
-
   test('basic help', async () => {
     const cmd = new Command({
       name: 'basic-help',
       description: 'This is a basic command',
       arguments: {
         name: 'name',
-        description: 'The name of the thing'
+        description: 'The name of the thing',
       },
       options: [
         {
           name: 'log-level',
           type: 'string',
           description: 'Set the log level',
-          itemName: 'level'
+          itemName: 'level',
         },
         {
           name: 'log-format',
           type: 'string',
-          description: 'Set the logging output format'
+          description: 'Set the logging output format',
         },
         {
           name: 'file',
           type: 'string',
           multiple: true,
-          description: 'The file(s) to read'
-        }
+          description: 'The file(s) to read',
+        },
       ],
       flags: [
         {
           name: 'debug',
-          description: 'Run debug mode'
+          description: 'Run debug mode',
         },
         {
           name: 'version',
           description: 'Show version',
-          alias: 'v'
-        }
-      ]
+          alias: 'v',
+        },
+      ],
     })
     const usage = cmd.generateHelp({ allowColors: false })
     expect(usage).toEqual(`
@@ -75,7 +57,8 @@ Options:
   --log-format <log-format>             Set the logging output format
   --file <file...>                      The file(s) to read
   --debug                               Run debug mode
-  -v, --version                         Show version`)
+  -v, --version                         Show version
+  -h, --help                            Show help`)
   })
 
   test('basic help with subcommands', async () => {
@@ -85,39 +68,39 @@ Options:
       subcommands: [
         {
           name: 'subcommand-instance',
-          description: 'This is an example subcommand instance'
-        }
+          description: 'This is an example subcommand instance',
+        },
       ],
       options: [
         {
           name: 'log-level',
           type: 'string',
           description: 'Set the log level',
-          itemName: 'level'
+          itemName: 'level',
         },
         {
           name: 'log-format',
           type: 'string',
-          description: 'Set the logging output format'
+          description: 'Set the logging output format',
         },
         {
           name: 'file',
           type: 'string',
           multiple: true,
-          description: 'The file(s) to read'
-        }
+          description: 'The file(s) to read',
+        },
       ],
       flags: [
         {
           name: 'debug',
-          description: 'Run debug mode'
+          description: 'Run debug mode',
         },
         {
           name: 'version',
           description: 'Show version',
-          alias: 'v'
-        }
-      ]
+          alias: 'v',
+        },
+      ],
     })
     const usage = cmd.generateHelp({ allowColors: false })
     expect(usage).toEqual(`
@@ -134,7 +117,7 @@ Options:
   --log-format <log-format>             Set the logging output format
   --file <file...>                      The file(s) to read
   --debug                               Run debug mode
-  -v, --version                         Show version`)
+  -v, --version                         Show version
+  -h, --help                            Show help`)
   })
-
 })

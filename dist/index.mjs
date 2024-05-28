@@ -36390,10 +36390,10 @@ function ui(opts) {
 var CommandParser = class {
   /**
    * Generate help text for a command
-   * 
+   *
    * @param command   command data
-   * @param config    config options 
-   * @returns 
+   * @param config    config options
+   * @returns
    */
   static generateHelp(command, {
     indent = 2,
@@ -36423,13 +36423,16 @@ var CommandParser = class {
       });
       for (const subcommandName in command.subcommands) {
         const subcommand = command.subcommands[subcommandName];
-        ui2.div({
-          text: `${subcommand.name}`,
-          padding: [0, 0, 0, indent]
-        }, {
-          text: subcommand.description || "",
-          padding: [0, 0, 0, 0]
-        });
+        ui2.div(
+          {
+            text: `${subcommand.name}`,
+            padding: [0, 0, 0, indent]
+          },
+          {
+            text: subcommand.description || "",
+            padding: [0, 0, 0, 0]
+          }
+        );
       }
     }
     if (command.arguments.length > 0) {
@@ -36438,14 +36441,16 @@ var CommandParser = class {
         padding: [1, 0, 0, 0]
       });
       for (const arg of command.arguments) {
-        const argType = arg._type ? ` (${arg._type})` : "";
-        ui2.div({
-          text: `${arg.name}`,
-          padding: [0, 0, 0, indent]
-        }, {
-          text: arg.description || "",
-          padding: [0, 0, 0, 0]
-        });
+        ui2.div(
+          {
+            text: `${arg.name}`,
+            padding: [0, 0, 0, indent]
+          },
+          {
+            text: arg.description || "",
+            padding: [0, 0, 0, 0]
+          }
+        );
       }
     }
     if (command.options.length > 0) {
@@ -36454,19 +36459,21 @@ var CommandParser = class {
         padding: [1, 0, 0, 0]
       });
       for (const option of command.options) {
-        const optType = option._type ? `${option._type.toUpperCase()}` : "";
         const optName = option.itemName ? `${option.itemName}` : option.name;
         const optAlias = option.alias ? `-${option.alias}, ` : "";
         const optMultiple = option.multiple ? "..." : "";
         const defaultValue = option.default ? ` [default: ${option.default}]` : "";
         const optString = `<${optName}${optMultiple}>`;
-        ui2.div({
-          text: `${optAlias}--${option.name} ${optString}`,
-          padding: [0, 0, 0, indent]
-        }, {
-          text: `${option.description || ""}${defaultValue}`,
-          padding: [0, 0, 0, 0]
-        });
+        ui2.div(
+          {
+            text: `${optAlias}--${option.name} ${optString}`,
+            padding: [0, 0, 0, indent]
+          },
+          {
+            text: `${option.description || ""}${defaultValue}`,
+            padding: [0, 0, 0, 0]
+          }
+        );
       }
     }
     if (command.flags.length > 0) {
@@ -36478,22 +36485,25 @@ var CommandParser = class {
       }
       for (const flag of command.flags) {
         const flagAlias = flag.alias ? `-${flag.alias}, ` : "";
-        ui2.div({
-          text: `${flagAlias}--${flag.name}`,
-          padding: [0, 0, 0, indent]
-        }, {
-          text: flag.description || "",
-          padding: [0, 0, 0, 0]
-        });
+        ui2.div(
+          {
+            text: `${flagAlias}--${flag.name}`,
+            padding: [0, 0, 0, indent]
+          },
+          {
+            text: flag.description || "",
+            padding: [0, 0, 0, 0]
+          }
+        );
       }
     }
     return ui2.toString();
   }
   /**
    * Generate usage string for a command
-   * 
+   *
    * @param command command data
-   * @returns 
+   * @returns
    */
   static generateUsage(command) {
     const advancedFormat = false;
@@ -36552,11 +36562,11 @@ var Command = class _Command {
   _prompts = [];
   _subcommands = {};
   _definitions = [];
-  // none, single, multiple, positional, subcommand 
+  // none, single, multiple, positional, subcommand
   _argumentStrategy = "none";
   /**
    * Constructor
-   * 
+   *
    * @param {CommandProps} cfg  Command configuration
    * @memberof Command
    */
@@ -36566,7 +36576,7 @@ var Command = class _Command {
   }
   /**
    * Apply the provided configuration to the command
-   * 
+   *
    * @param   {CommandPromptProps}  cfg     Command configuration
    * @returns {Command}                     Command instance (for chainability)
    * @memberof Command
@@ -36578,7 +36588,7 @@ var Command = class _Command {
   }
   /**
    * Prepare the command by registering arguments, options, flags, subcommands and prompts
-   * 
+   *
    * @memberof Command
    */
   prepare() {
@@ -36602,7 +36612,7 @@ var Command = class _Command {
   }
   /**
    * Assemble the command-line arguments
-   * 
+   *
    * @returns {array} Array of argument definitions
    * @memberof Command
    */
@@ -36646,16 +36656,13 @@ var Command = class _Command {
     let {
       _all: data = {},
       _args: args = {},
-      _unknown: unknown = []
-    } = primaryParse;
-    const {
-      _all: altData = {},
-      _args: altArgs = {},
       _opts: opts = {},
       _flags: flags = {},
-      _unknown: altUnknown = [],
+      _unknown: unknown = [],
       ...tags
     } = primaryParse;
+    if (tags._system && Object.keys(tags._system).length === 0)
+      delete tags._system;
     if (unknown.length > 0) {
       if (this._argumentStrategy === "positional") {
         const updates = this.parsePositionalArgs({ data, args, unknown });
@@ -36687,17 +36694,13 @@ var Command = class _Command {
   }
   /**
    * Parse positional arguments
-   * 
-   * @param {object} options  configuration options 
-   * @returns 
+   *
+   * @param {object} options  configuration options
+   * @returns
    * @memberof Command
    */
-  parsePositionalArgs({
-    data = {},
-    args = {},
-    unknown = []
-  }) {
-    this._arguments.forEach((arg, i) => {
+  parsePositionalArgs({ data = {}, args = {}, unknown = [] }) {
+    this._arguments.forEach((arg) => {
       if (arg.required && unknown.length === 0) {
         if (arg.defaultValue) {
           args[arg.name] = arg.defaultValue;
@@ -36707,7 +36710,7 @@ var Command = class _Command {
       }
       if (arg.multiple) {
         const argList = [];
-        unknown.forEach((val, i2) => argList.push(arg.type(val)));
+        unknown.forEach((val) => argList.push(arg.type(val)));
         args[arg.name] = argList;
         unknown = [];
       } else if (unknown.length > 0) {
@@ -36719,16 +36722,19 @@ var Command = class _Command {
   }
   /**
    * Run the command
-   * 
+   *
    * @param argv array of command-line arguments
-   * @returns 
+   * @returns
    * @memberof Command
    * @async
    */
   async run(argv) {
     let { data, details } = this.parse(argv);
     if (details.subcommand)
-      return this.runSubcommand(details.subcommand.name, details.subcommand.argv);
+      return this.runSubcommand(
+        details.subcommand.name,
+        details.subcommand.argv
+      );
     if (data.help)
       return this.outputHelp();
     if (data.version)
@@ -36739,7 +36745,7 @@ var Command = class _Command {
   }
   /**
    * Transform the data before running the action
-   * 
+   *
    * @param {object} data   data to be transformed
    * @returns {object}      transformed data
    * @memberof Command
@@ -36747,7 +36753,7 @@ var Command = class _Command {
    */
   transform = async (data) => data;
   /**
-   * 
+   *
    * @param {object} data     data object
    * @param {object} details  details object
    * @returns
@@ -36755,6 +36761,8 @@ var Command = class _Command {
    * @async
    */
   async action(data, details) {
+    this.outputHelp();
+    return { data, details };
   }
   /**
    * Add an argument
@@ -36791,7 +36799,7 @@ var Command = class _Command {
   }
   /**
    * Add an option
-   * 
+   *
    * @param {object} opt  Option object
    * @returns {Command}   Command instance (for chainability)
    * @memberof Command
@@ -36830,7 +36838,7 @@ var Command = class _Command {
   }
   /**
    * Add a flag
-   * 
+   *
    * @param {object} flag  Flag object
    * @returns {Command}    Command instance (for chainability)
    * @memberof Command
@@ -36841,7 +36849,7 @@ var Command = class _Command {
     description = "",
     required = false,
     global: global2 = false,
-    default: defaultValue = false,
+    default: defaultValue = void 0,
     tags = [],
     validate = async () => true
   }) {
@@ -36863,7 +36871,7 @@ var Command = class _Command {
   }
   /**
    * Add a prompt
-   * 
+   *
    * @param {object} prompt  Prompt object
    * @returns {Command}      Command instance (for chainability)
    * @memberof Command
@@ -36901,7 +36909,7 @@ var Command = class _Command {
   }
   /**
    * Add a subcommand
-   * 
+   *
    * @param {object} cmd   Subcommand object
    * @param {string} name  Subcommand name
    * @returns {Command}    Command instance (for chainability)
@@ -36942,7 +36950,7 @@ var Command = class _Command {
   }
   /**
    * Register auto flags
-   * 
+   *
    * @memberof Command
    */
   registerAutoFlags() {
@@ -36951,7 +36959,6 @@ var Command = class _Command {
         name: "help",
         alias: "h",
         description: "Show help",
-        global: true,
         tags: ["_system"]
       });
     }
@@ -36960,14 +36967,13 @@ var Command = class _Command {
         name: "version",
         alias: "v",
         description: "Show version",
-        global: true,
         tags: ["_system"]
       });
     }
   }
   /**
    * Parse a data type
-   * 
+   *
    * @param {string} dataType  Data type to parse
    * @returns {function}       Parsed data type
    * @memberof Command
@@ -37016,7 +37022,7 @@ var Command = class _Command {
   }
   /**
    * Get a subcommand by name
-   * 
+   *
    * @param {string} name  Argument name
    * @returns {object}     Argument object
    * @memberof Command
@@ -37026,7 +37032,7 @@ var Command = class _Command {
   }
   /**
    * Run a subcommand
-   * 
+   *
    * @param {string} name  Subcommand name
    * @param {array} argv   Subcommand arguments
    * @returns
@@ -37038,7 +37044,7 @@ var Command = class _Command {
   }
   /**
    * Run the prompts
-   * 
+   *
    * @param {object} data  Data object
    * @returns
    * @memberof Command
@@ -37051,7 +37057,7 @@ var Command = class _Command {
   }
   /**
    * Internal method to transform the data
-   * 
+   *
    * @param {object} data   Data object
    * @returns {object}      Transformed data object
    * @memberof Command
@@ -37066,7 +37072,7 @@ var Command = class _Command {
   }
   /**
    * Generate help text for the command
-   * 
+   *
    * @param {object} cfg  Configuration options
    * @returns {string}    Help text
    * @memberof Command
@@ -37088,7 +37094,7 @@ var Command = class _Command {
   }
   /**
    * Output help text
-   * 
+   *
    * @memberof Command
    */
   outputHelp() {
@@ -37098,7 +37104,7 @@ var Command = class _Command {
   }
   /**
    * Style the output
-   * 
+   *
    * @param {string} styles  Styles to apply
    * @returns {function}     Chalk function
    * @memberof Command
@@ -37117,7 +37123,7 @@ var Command = class _Command {
   }
   /**
    * Log output
-   * 
+   *
    * @param {any} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command
@@ -37130,7 +37136,7 @@ var Command = class _Command {
   }
   /**
    * Log output
-   * 
+   *
    * @param {any} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command
@@ -37139,7 +37145,7 @@ var Command = class _Command {
   out = (msg, opts = {}) => this.log(msg, opts);
   /**
    * Log an error
-   * 
+   *
    * @param {any} err   Error object
    * @param {any} msg   Message to log
    * @param {boolean} exit  Exit the process
@@ -37157,7 +37163,7 @@ var Command = class _Command {
   }
   /**
    * Log a spacer
-   * 
+   *
    * @memberof Command
    */
   spacer = () => {
@@ -37166,7 +37172,7 @@ var Command = class _Command {
   };
   /**
    * Rainbowify text
-   * 
+   *
    * @param {string} text   Text to rainbowify
    * @returns {string}      Rainbowified text
    * @memberof Command
@@ -37174,7 +37180,7 @@ var Command = class _Command {
   rainbow = (text) => rainbow(text);
   /**
    * Log a heading
-   * 
+   *
    * @param {string} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command

@@ -5,7 +5,7 @@ export const BasicCommand = new Command({
 
   arguments: [
     {
-      name: 'name'
-    }
-  ]
+      name: 'name',
+    },
+  ],
 })

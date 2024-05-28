@@ -4,8 +4,8 @@ export const SingleArgumentCommand = new Command({
   name: 'single-argument',
 
   arguments: {
-    name: 'name'
-  }
+    name: 'name',
+  },
 })
 
 export const MultipleArgumentsCommand = new Command({
@@ -13,8 +13,8 @@ export const MultipleArgumentsCommand = new Command({
 
   arguments: {
     name: 'name',
-    multiple: true
-  }
+    multiple: true,
+  },
 })
 
 export const PositionalArgumentsCommand = new Command({
@@ -23,11 +23,11 @@ export const PositionalArgumentsCommand = new Command({
   arguments: [
     {
       name: 'name',
-      required: true
+      required: true,
     },
     {
       name: 'age',
-      type: Number
-    }
-  ]
+      type: Number,
+    },
+  ],
 })

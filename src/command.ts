@@ -1,3 +1,4 @@
+/* eslint prefer-const: ["error", { destructuring: 'all', ignoreReadBeforeAssign: true }] */
 import clargs from 'command-line-args'
 // @ts-expect-error needed for dual-bundling
 import { Prompt, PromptConstructor } from '@types/inquirer'
@@ -22,26 +23,32 @@ import {
 export class Command {
   __type = 'Command'
 
-  name:string = undefined
-  description?:string
-  version?:string
+  name: string = undefined
+  description?: string
+  version?: string
 
-  protected _command:string = undefined
-  get command () { return this._command || this.name }
-  set command (val) { this._command = val }
+  protected _command: string = undefined
+  get command() {
+    return this._command || this.name
+  }
+  set command(val) {
+    this._command = val
+  }
 
-  arguments:CommandArgumentProps | CommandArgumentProps[] = []
-  options:CommandOptionProps[] = []
-  flags:CommandFlagProps[] = []
-  prompts:CommandPromptProps[] = []
-  subcommands: Array<CommandProps | Command | typeof Command> | {[key:string]: CommandProps | Command | typeof Command} = []
+  arguments: CommandArgumentProps | CommandArgumentProps[] = []
+  options: CommandOptionProps[] = []
+  flags: CommandFlagProps[] = []
+  prompts: CommandPromptProps[] = []
+  subcommands:
+    | Array<CommandProps | Command | typeof Command>
+    | { [key: string]: CommandProps | Command | typeof Command } = []
 
-  promptTypes: {[key:string]: PromptConstructor} = {}
+  promptTypes: { [key: string]: PromptConstructor } = {}
 
-  autoHelp:boolean = true
-  autoVersion:boolean = true
-  silent:boolean = false
-  fun:boolean = true
+  autoHelp: boolean = true
+  autoVersion: boolean = true
+  silent: boolean = false
+  fun: boolean = true
 
   protected _arguments = []
   protected _options = []
@@ -51,31 +58,31 @@ export class Command {
 
   protected _definitions = []
 
-  // none, single, multiple, positional, subcommand 
+  // none, single, multiple, positional, subcommand
   protected _argumentStrategy = 'none'
 
   /**
    * Constructor
-   * 
+   *
    * @param {CommandProps} cfg  Command configuration
    * @memberof Command
    */
-  constructor(cfg?:CommandProps) {
+  constructor(cfg?: CommandProps) {
     this.initialize(cfg)
     return this
   }
 
   /**
    * Apply the provided configuration to the command
-   * 
+   *
    * @param   {CommandPromptProps}  cfg     Command configuration
    * @returns {Command}                     Command instance (for chainability)
    * @memberof Command
    */
-  initialize(cfg:CommandProps | {} = {}) {
+  initialize(cfg: CommandProps | {} = {}) {
     // set each provided value
     Object.entries(cfg).forEach(([key, value]) => (this[key] = value))
-    
+
     this.prepare()
 
     return this
@@ -83,12 +90,14 @@ export class Command {
 
   /**
    * Prepare the command by registering arguments, options, flags, subcommands and prompts
-   * 
+   *
    * @memberof Command
    */
   prepare() {
     // register arguments
-    const args = Array.isArray(this.arguments) ? this.arguments : [this.arguments]
+    const args = Array.isArray(this.arguments)
+      ? this.arguments
+      : [this.arguments]
     args.forEach(arg => this.argument(arg))
     // register options
     this.options.forEach(opt => this.option(opt))
@@ -114,11 +123,11 @@ export class Command {
 
   /**
    * Assemble the command-line arguments
-   * 
+   *
    * @returns {array} Array of argument definitions
    * @memberof Command
    */
-  assemble () {
+  assemble() {
     const definitions = []
 
     if (this._arguments.length === 1) {
@@ -128,14 +137,17 @@ export class Command {
       this._argumentStrategy = arg.multiple ? 'multiple' : 'single'
       arg.defaultOption = true
       definitions.push(arg)
-    }else if (this._arguments.length > 1) {
+    } else if (this._arguments.length > 1) {
       // multiple arguments passed, so positional
       this._argumentStrategy = 'positional'
     }
 
     const subcommandCount = Object.keys(this._subcommands).length
 
-    if (subcommandCount > 0 && !['none', 'subcommand'].includes(this._argumentStrategy))
+    if (
+      subcommandCount > 0 &&
+      !['none', 'subcommand'].includes(this._argumentStrategy)
+    )
       throw new Error('Cannot use both arguments and subcommands')
 
     if (subcommandCount > 0) this._argumentStrategy = 'subcommand'
@@ -155,7 +167,7 @@ export class Command {
    * @returns {Command}       Command instance (for chainability)
    * @memberof Command
    */
-  parse (argv?:string[]) {
+  parse(argv?: string[]) {
     if (!argv) argv = process.argv
     const argMix = this.assemble()
     const primaryParse = clargs(argMix, {
@@ -163,23 +175,20 @@ export class Command {
       stopAtFirstUnknown: true,
       camelCase: true,
     })
-    
+
     let subcommand = null
 
     let {
       _all: data = {},
       _args: args = {},
-      _unknown: unknown = [],
-    } = primaryParse
-
-    const {
-      _all: altData = {},
-      _args: altArgs = {},
       _opts: opts = {},
       _flags: flags = {},
-      _unknown: altUnknown = [],
+      _unknown: unknown = [],
       ...tags
     } = primaryParse
+
+    if (tags._system && Object.keys(tags._system).length === 0)
+      delete tags._system
 
     if (unknown.length > 0) {
       if (this._argumentStrategy === 'positional') {
@@ -188,10 +197,11 @@ export class Command {
         unknown = updates.unknown
       } else if (this._argumentStrategy === 'subcommand') {
         const cmd = unknown.shift()
-        if (!this._subcommands[cmd]) throw new Error(`Unknown subcommand: ${cmd}`)
+        if (!this._subcommands[cmd])
+          throw new Error(`Unknown subcommand: ${cmd}`)
         subcommand = {
           name: cmd,
-          argv: unknown
+          argv: unknown,
         }
         unknown = []
       }
@@ -208,23 +218,19 @@ export class Command {
 
     return {
       data,
-      details
+      details,
     }
   }
 
   /**
    * Parse positional arguments
-   * 
-   * @param {object} options  configuration options 
-   * @returns 
+   *
+   * @param {object} options  configuration options
+   * @returns
    * @memberof Command
    */
-  parsePositionalArgs({
-    data = {},
-    args = {},
-    unknown = [],
-  }) {
-    this._arguments.forEach((arg, i) => {
+  parsePositionalArgs({ data = {}, args = {}, unknown = [] }) {
+    this._arguments.forEach(arg => {
       if (arg.required && unknown.length === 0) {
         if (arg.defaultValue) {
           args[arg.name] = arg.defaultValue
@@ -234,7 +240,7 @@ export class Command {
       }
       if (arg.multiple) {
         const argList = []
-        unknown.forEach((val, i) => argList.push(arg.type(val)))
+        unknown.forEach(val => argList.push(arg.type(val)))
         args[arg.name] = argList
         unknown = []
       } else if (unknown.length > 0) {
@@ -247,17 +253,21 @@ export class Command {
 
   /**
    * Run the command
-   * 
+   *
    * @param argv array of command-line arguments
-   * @returns 
+   * @returns
    * @memberof Command
    * @async
    */
-  async run(argv?:string[]) {
+  async run(argv?: string[]) {
     // parse the command-line arguments
     let { data, details } = this.parse(argv)
 
-    if (details.subcommand) return this.runSubcommand(details.subcommand.name, details.subcommand.argv)
+    if (details.subcommand)
+      return this.runSubcommand(
+        details.subcommand.name,
+        details.subcommand.argv,
+      )
 
     if (data.help) return this.outputHelp()
     if (data.version) return this.log(this.version)
@@ -270,7 +280,7 @@ export class Command {
 
   /**
    * Transform the data before running the action
-   * 
+   *
    * @param {object} data   data to be transformed
    * @returns {object}      transformed data
    * @memberof Command
@@ -279,14 +289,17 @@ export class Command {
   transform = async data => data
 
   /**
-   * 
+   *
    * @param {object} data     data object
    * @param {object} details  details object
    * @returns
    * @memberof Command
    * @async
    */
-  async action(data, details) {}
+  async action(data, details) {
+    this.outputHelp()
+    return { data, details }
+  }
 
   /**
    * Add an argument
@@ -295,7 +308,7 @@ export class Command {
    * @returns {Command}   Command instance (for chainability)
    * @memberof Command
    */
-  argument ({
+  argument({
     name,
     type: dataType = 'string',
     description = '',
@@ -303,8 +316,8 @@ export class Command {
     multiple = false,
     default: defaultValue,
     tags = [],
-    validate = async () => true
-  }:CommandArgumentProps) {
+    validate = async () => true,
+  }: CommandArgumentProps) {
     if (typeof tags === 'string') tags = [tags]
     tags.push('_args')
     this._arguments.push({
@@ -316,14 +329,14 @@ export class Command {
       multiple,
       defaultValue,
       group: tags,
-      validate
+      validate,
     })
     return this
   }
 
   /**
    * Add an option
-   * 
+   *
    * @param {object} opt  Option object
    * @returns {Command}   Command instance (for chainability)
    * @memberof Command
@@ -339,8 +352,8 @@ export class Command {
     default: defaultValue,
     itemName,
     tags = [],
-    validate = async () => true
-  }:CommandOptionProps) {
+    validate = async () => true,
+  }: CommandOptionProps) {
     if (typeof tags === 'string') tags = [tags]
     tags.push('_opts')
     this._options.push({
@@ -355,14 +368,14 @@ export class Command {
       defaultValue,
       itemName,
       group: tags,
-      validate
+      validate,
     })
     return this
   }
 
   /**
    * Add a flag
-   * 
+   *
    * @param {object} flag  Flag object
    * @returns {Command}    Command instance (for chainability)
    * @memberof Command
@@ -373,10 +386,10 @@ export class Command {
     description = '',
     required = false,
     global = false,
-    default: defaultValue = false,
+    default: defaultValue = undefined,
     tags = [],
-    validate = async () => true
-  }:CommandFlagProps) {
+    validate = async () => true,
+  }: CommandFlagProps) {
     if (typeof tags === 'string') tags = [tags]
     tags.push('_opts')
     this._flags.push({
@@ -388,14 +401,14 @@ export class Command {
       global,
       defaultValue,
       group: tags,
-      validate
+      validate,
     })
     return this
   }
 
   /**
    * Add a prompt
-   * 
+   *
    * @param {object} prompt  Prompt object
    * @returns {Command}      Command instance (for chainability)
    * @memberof Command
@@ -411,8 +424,8 @@ export class Command {
     transform = v => v,
     when = () => true,
     force = false,
-    _overrides = {}
-  }:CommandPromptProps) {
+    _overrides = {},
+  }: CommandPromptProps) {
     if (typeof tags === 'string') tags = [tags]
     tags.push('_opts')
     this._prompts.push({
@@ -426,14 +439,14 @@ export class Command {
       when,
       askAnswered: force,
       group: tags,
-      ..._overrides
+      ..._overrides,
     })
     return this
   }
 
   /**
    * Add a subcommand
-   * 
+   *
    * @param {object} cmd   Subcommand object
    * @param {string} name  Subcommand name
    * @returns {Command}    Command instance (for chainability)
@@ -447,7 +460,11 @@ export class Command {
       // cmd is an uninstantiated class
       const cmdInstance = new cmd()
       this._subcommands[name || cmdInstance.command] = cmdInstance
-    } else if ('name' in cmd && typeof cmd.name === 'string' && cmd instanceof Command === false) {
+    } else if (
+      'name' in cmd &&
+      typeof cmd.name === 'string' &&
+      cmd instanceof Command === false
+    ) {
       // cmd is an object
       this._subcommands[name || cmd.command || cmd.name] = new Command(cmd)
     } else {
@@ -480,17 +497,16 @@ export class Command {
 
   /**
    * Register auto flags
-   * 
+   *
    * @memberof Command
    */
-  registerAutoFlags () {
+  registerAutoFlags() {
     if (this.autoHelp) {
       this.flag({
         name: 'help',
         alias: 'h',
         description: 'Show help',
-        global: true,
-        tags: ['_system']
+        tags: ['_system'],
       })
     }
     if (this.autoVersion && this.version) {
@@ -498,20 +514,19 @@ export class Command {
         name: 'version',
         alias: 'v',
         description: 'Show version',
-        global: true,
-        tags: ['_system']
+        tags: ['_system'],
       })
     }
   }
 
   /**
    * Parse a data type
-   * 
+   *
    * @param {string} dataType  Data type to parse
    * @returns {function}       Parsed data type
    * @memberof Command
    */
-  parseDataType (dataType) {
+  parseDataType(dataType) {
     if (typeof dataType === 'function') return dataType
     switch (dataType) {
       case 'string':
@@ -559,51 +574,51 @@ export class Command {
 
   /**
    * Get a subcommand by name
-   * 
+   *
    * @param {string} name  Argument name
    * @returns {object}     Argument object
    * @memberof Command
    */
-  getSubcommand (name) {
+  getSubcommand(name) {
     return this._subcommands[name]
   }
 
   /**
    * Run a subcommand
-   * 
+   *
    * @param {string} name  Subcommand name
    * @param {array} argv   Subcommand arguments
    * @returns
    * @memberof Command
    */
-  runSubcommand (name, argv) {
+  runSubcommand(name, argv) {
     const cmd = this._subcommands[name]
     return cmd.run(argv)
   }
 
   /**
    * Run the prompts
-   * 
+   *
    * @param {object} data  Data object
    * @returns
    * @memberof Command
    * @async
    */
-  async runPrompts (data = {}) {
+  async runPrompts(data = {}) {
     if (this.prompts.length === 0) return data
     return await inquirer.prompt(this.prompts, data)
   }
 
   /**
    * Internal method to transform the data
-   * 
+   *
    * @param {object} data   Data object
    * @returns {object}      Transformed data object
    * @memberof Command
    * @async
    * @protected
    */
-  protected async transformFn (data) {
+  protected async transformFn(data) {
     let transform = this.transform(data)
     if (transform instanceof Promise) transform = await transform
     return transform
@@ -611,12 +626,12 @@ export class Command {
 
   /**
    * Generate help text for the command
-   * 
+   *
    * @param {object} cfg  Configuration options
    * @returns {string}    Help text
    * @memberof Command
    */
-  generateHelp (cfg = {}) {
+  generateHelp(cfg = {}) {
     const data = {
       name: this.name,
       command: this.command,
@@ -634,10 +649,10 @@ export class Command {
 
   /**
    * Output help text
-   * 
+   *
    * @memberof Command
    */
-  outputHelp () {
+  outputHelp() {
     const help = this.generateHelp()
     console.log(help)
     process.exit(0)
@@ -645,7 +660,7 @@ export class Command {
 
   /**
    * Style the output
-   * 
+   *
    * @param {string} styles  Styles to apply
    * @returns {function}     Chalk function
    * @memberof Command
@@ -663,7 +678,7 @@ export class Command {
 
   /**
    * Log output
-   * 
+   *
    * @param {any} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command
@@ -676,7 +691,7 @@ export class Command {
 
   /**
    * Log output
-   * 
+   *
    * @param {any} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command
@@ -686,7 +701,7 @@ export class Command {
 
   /**
    * Log an error
-   * 
+   *
    * @param {any} err   Error object
    * @param {any} msg   Message to log
    * @param {boolean} exit  Exit the process
@@ -704,7 +719,7 @@ export class Command {
 
   /**
    * Log a spacer
-   * 
+   *
    * @memberof Command
    */
   spacer = () => {
@@ -713,7 +728,7 @@ export class Command {
 
   /**
    * Rainbowify text
-   * 
+   *
    * @param {string} text   Text to rainbowify
    * @returns {string}      Rainbowified text
    * @memberof Command
@@ -722,7 +737,7 @@ export class Command {
 
   /**
    * Log a heading
-   * 
+   *
    * @param {string} msg   Message to log
    * @param {object} opts  Options
    * @memberof Command

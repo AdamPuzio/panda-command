@@ -152,7 +152,7 @@ declare class Command {
      * @returns
      * @memberof Command
      */
-    parsePositionalArgs({ data, args, unknown, }: {
+    parsePositionalArgs({ data, args, unknown }: {
         data?: {};
         args?: {};
         unknown?: any[];
@@ -186,7 +186,10 @@ declare class Command {
      * @memberof Command
      * @async
      */
-    action(data: any, details: any): Promise<void>;
+    action(data: any, details: any): Promise<{
+        data: any;
+        details: any;
+    }>;
     /**
      * Add an argument
      *
@@ -194,7 +197,7 @@ declare class Command {
      * @returns {Command}   Command instance (for chainability)
      * @memberof Command
      */
-    argument({ name, type: dataType, description, required, multiple, default: defaultValue, tags, validate }: CommandArgumentProps): this;
+    argument({ name, type: dataType, description, required, multiple, default: defaultValue, tags, validate, }: CommandArgumentProps): this;
     /**
      * Add an option
      *
@@ -202,7 +205,7 @@ declare class Command {
      * @returns {Command}   Command instance (for chainability)
      * @memberof Command
      */
-    option({ name, alias, type: dataType, description, required, multiple, global, default: defaultValue, itemName, tags, validate }: CommandOptionProps): this;
+    option({ name, alias, type: dataType, description, required, multiple, global, default: defaultValue, itemName, tags, validate, }: CommandOptionProps): this;
     /**
      * Add a flag
      *
@@ -210,7 +213,7 @@ declare class Command {
      * @returns {Command}    Command instance (for chainability)
      * @memberof Command
      */
-    flag({ name, alias, description, required, global, default: defaultValue, tags, validate }: CommandFlagProps): this;
+    flag({ name, alias, description, required, global, default: defaultValue, tags, validate, }: CommandFlagProps): this;
     /**
      * Add a prompt
      *
@@ -218,7 +221,7 @@ declare class Command {
      * @returns {Command}      Command instance (for chainability)
      * @memberof Command
      */
-    prompt({ name, type, label, options, default: defaultValue, tags, validate, transform, when, force, _overrides }: CommandPromptProps): this;
+    prompt({ name, type, label, options, default: defaultValue, tags, validate, transform, when, force, _overrides, }: CommandPromptProps): this;
     /**
      * Add a subcommand
      *

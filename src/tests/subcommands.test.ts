@@ -1,32 +1,29 @@
-import { vi, describe, test, expect } from 'vitest'
+import { describe, test, expect } from 'vitest'
 
 import { Command } from '../command'
 
 const subcommandInstance = new Command({
-  name: 'subcommand-instance'
+  name: 'subcommand-instance',
 })
 
 class subcommandClass extends Command {
-  name:string = 'subcommand-class'
+  name: string = 'subcommand-class'
 
   arguments = {
-    name: 'name'
+    name: 'name',
   }
 }
 
 const subcommandObject = {
-  name: 'subcommand-object'
+  name: 'subcommand-object',
 }
 
 describe('subcommands', async () => {
-
   test('basic subcommand - instance', async () => {
     const argv = ['subcommand-instance']
     const rs = new Command({
       name: 'basic-subcommand-instance',
-      subcommands: [
-        subcommandInstance,
-      ]
+      subcommands: [subcommandInstance],
     })
     expect(rs.parse(argv)).toEqual({
       data: {},
@@ -48,9 +45,7 @@ describe('subcommands', async () => {
     const argv = ['subcommand-class', 'subcommand-name']
     const rs = new Command({
       name: 'basic-subcommand-class',
-      subcommands: [
-        subcommandClass,
-      ]
+      subcommands: [subcommandClass],
     })
     expect(rs.parse(argv)).toEqual({
       data: {},
@@ -72,9 +67,7 @@ describe('subcommands', async () => {
     const argv = ['subcommand-object']
     const rs = new Command({
       name: 'basic-subcommand-object',
-      subcommands: [
-        subcommandObject,
-      ]
+      subcommands: [subcommandObject],
     })
     expect(rs.parse(argv)).toEqual({
       data: {},
@@ -96,12 +89,12 @@ describe('subcommands', async () => {
     const argv = ['subcommand-instance']
     const cmd = new Command({
       name: 'parse-subcommand-instance',
-      subcommands: [
-        subcommandInstance,
-      ]
+      subcommands: [subcommandInstance],
     })
     const rs = cmd.parse(argv)
-    const rssub = cmd.getSubcommand(rs.details.subcommand.name).parse(rs.details.subcommand.argv)
+    const rssub = cmd
+      .getSubcommand(rs.details.subcommand.name)
+      .parse(rs.details.subcommand.argv)
 
     expect(rssub).toEqual({
       data: {},
@@ -115,5 +108,4 @@ describe('subcommands', async () => {
       },
     })
   })
-
 })

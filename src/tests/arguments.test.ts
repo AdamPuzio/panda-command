@@ -1,15 +1,14 @@
-import { vi, describe, test, expect } from 'vitest'
+import { describe, test, expect } from 'vitest'
 import { Command } from '../command'
 
 describe('arguments', async () => {
-
   test('single argument', async () => {
     const argv = ['foo', 'bar']
     const rs = new Command({
       name: 'single-argument',
       arguments: {
-        name: 'name'
-      }
+        name: 'name',
+      },
     }).parse(argv)
     expect(rs).toEqual({
       data: { name: 'foo' },
@@ -28,11 +27,11 @@ describe('arguments', async () => {
     const argv = ['foo', 'bar', 'baz']
     const rs = new Command({
       name: 'multiple-arguments',
-    
+
       arguments: {
         name: 'name',
-        multiple: true
-      }
+        multiple: true,
+      },
     }).parse(argv)
     expect(rs).toEqual({
       data: { name: ['foo', 'bar', 'baz'] },
@@ -54,12 +53,12 @@ describe('arguments', async () => {
       arguments: [
         {
           name: 'name',
-          required: true
+          required: true,
         },
         {
-          name: 'age'
-        }
-      ]
+          name: 'age',
+        },
+      ],
     }).parse(argv)
     expect(rs).toEqual({
       data: { name: 'John Doe', age: '25' },
@@ -81,13 +80,13 @@ describe('arguments', async () => {
       arguments: [
         {
           name: 'name',
-          required: true
+          required: true,
         },
         {
           name: 'age',
-          type: Number
-        }
-      ]
+          type: Number,
+        },
+      ],
     }).parse(argv)
     expect(rs).toEqual({
       data: { name: 'John Doe', age: 25 },
@@ -107,11 +106,10 @@ describe('arguments', async () => {
     const rs = new Command({
       name: 'args-and-subcommands-fail',
       arguments: { name: 'name' },
-      subcommands: [
-        { name: 'sub' }
-      ]
+      subcommands: [{ name: 'sub' }],
     })
-    expect(() => rs.parse(argv)).toThrowError(/^Cannot use both arguments and subcommands$/)
+    expect(() => rs.parse(argv)).toThrowError(
+      /^Cannot use both arguments and subcommands$/,
+    )
   })
-
 })
