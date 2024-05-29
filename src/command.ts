@@ -296,7 +296,7 @@ export class Command {
    * @memberof Command
    * @async
    */
-  async action(data, details) {
+  async action(data, details): Promise<any | void>{
     this.outputHelp()
     return { data, details }
   }
@@ -456,20 +456,32 @@ export class Command {
     if (cmd instanceof Command) {
       // instance of Command
       this._subcommands[name || cmd.command] = cmd
-    } else if (typeof cmd === 'function') {
+    } else if (
+      typeof cmd === 'function' &&
+      Object.getPrototypeOf(cmd.prototype) instanceof Command
+    ) {
       // cmd is an uninstantiated class
       const cmdInstance = new cmd()
-      this._subcommands[name || cmdInstance.command] = cmdInstance
+      if ('command' in cmdInstance) {
+        this._subcommands[name || cmdInstance.command] = cmdInstance
+      }
     } else if (
+      typeof cmd === 'object' &&
+      cmd !== null &&
       'name' in cmd &&
       typeof cmd.name === 'string' &&
-      cmd instanceof Command === false
+      '__type' in cmd &&
+      typeof cmd.__type === 'undefined'
     ) {
       // cmd is an object
-      this._subcommands[name || cmd.command || cmd.name] = new Command(cmd)
-    } else {
+      if ('command' in cmd) {
+        this._subcommands[name || cmd.command || cmd.name] = new Command(cmd)
+      }
+    } else if (typeof cmd === 'object' && cmd !== null && 'command' in cmd) {
       // cmd is a class instance
       this._subcommands[name || cmd.command] = cmd
+    } else {
+      throw new Error(`Invalid subcommand: ${cmd}`)
     }
     return this
   }
@@ -495,12 +507,15 @@ export class Command {
     return obj
   }
 
+  _autoFlagsRegistered = false
+
   /**
    * Register auto flags
    *
    * @memberof Command
    */
   registerAutoFlags() {
+    if (this._autoFlagsRegistered) return
     if (this.autoHelp) {
       this.flag({
         name: 'help',
@@ -517,6 +532,7 @@ export class Command {
         tags: ['_system'],
       })
     }
+    this._autoFlagsRegistered = true
   }
 
   /**

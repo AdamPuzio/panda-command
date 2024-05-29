@@ -34,7 +34,7 @@
     "lint:fix": "eslint --fix src",
     "lint:prettier": "npm run lint:prettier:script -- --check",
     "lint:prettier:fix": "npm run lint:prettier:script -- --write",
-    "lint:prettier:ci": "npm run lint:prettier-script -- --check",
+    "lint:prettier:ci": "npm run lint:prettier:script -- --check",
     "lint:prettier:script": "prettier \"src/**/*.{js,jsx,cjs,mjs,ts,tsx}\" --cache",
     "test": "npm run test:vitest && npm run lint",
     "test:vitest": "vitest run",

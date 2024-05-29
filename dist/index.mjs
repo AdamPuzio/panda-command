@@ -36918,13 +36918,19 @@ var Command = class _Command {
   subcommand(cmd, name) {
     if (cmd instanceof _Command) {
       this._subcommands[name || cmd.command] = cmd;
-    } else if (typeof cmd === "function") {
+    } else if (typeof cmd === "function" && Object.getPrototypeOf(cmd.prototype) instanceof _Command) {
       const cmdInstance = new cmd();
-      this._subcommands[name || cmdInstance.command] = cmdInstance;
-    } else if ("name" in cmd && typeof cmd.name === "string" && cmd instanceof _Command === false) {
-      this._subcommands[name || cmd.command || cmd.name] = new _Command(cmd);
-    } else {
+      if ("command" in cmdInstance) {
+        this._subcommands[name || cmdInstance.command] = cmdInstance;
+      }
+    } else if (typeof cmd === "object" && cmd !== null && "name" in cmd && typeof cmd.name === "string" && "__type" in cmd && typeof cmd.__type === "undefined") {
+      if ("command" in cmd) {
+        this._subcommands[name || cmd.command || cmd.name] = new _Command(cmd);
+      }
+    } else if (typeof cmd === "object" && cmd !== null && "command" in cmd) {
       this._subcommands[name || cmd.command] = cmd;
+    } else {
+      throw new Error(`Invalid subcommand: ${cmd}`);
     }
     return this;
   }
@@ -36948,12 +36954,15 @@ var Command = class _Command {
     obj.group = groups;
     return obj;
   }
+  _autoFlagsRegistered = false;
   /**
    * Register auto flags
    *
    * @memberof Command
    */
   registerAutoFlags() {
+    if (this._autoFlagsRegistered)
+      return;
     if (this.autoHelp) {
       this.flag({
         name: "help",
@@ -36970,6 +36979,7 @@ var Command = class _Command {
         tags: ["_system"]
       });
     }
+    this._autoFlagsRegistered = true;
   }
   /**
    * Parse a data type

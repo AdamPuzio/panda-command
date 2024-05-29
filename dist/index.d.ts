@@ -186,10 +186,7 @@ declare class Command {
      * @memberof Command
      * @async
      */
-    action(data: any, details: any): Promise<{
-        data: any;
-        details: any;
-    }>;
+    action(data: any, details: any): Promise<any | void>;
     /**
      * Add an argument
      *
@@ -240,6 +237,7 @@ declare class Command {
      * @memberof Command
      */
     tag(obj: any, tag: string): any;
+    _autoFlagsRegistered: boolean;
     /**
      * Register auto flags
      *
