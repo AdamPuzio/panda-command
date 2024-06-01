@@ -16,14 +16,16 @@ import {
   CommandFlagProps,
   CommandPromptProps,
 } from './command.types'
+import { type } from 'os'
 
 /**
  * Command class
  */
 export class Command {
-  __type = 'Command'
+  static __type = 'Command'
+  _initialized = false
 
-  name: string = undefined
+  name: string
   description?: string
   version?: string
 
@@ -84,6 +86,8 @@ export class Command {
     Object.entries(cfg).forEach(([key, value]) => (this[key] = value))
 
     this.prepare()
+
+    this._initialized = true
 
     return this
   }
@@ -456,30 +460,17 @@ export class Command {
     if (cmd instanceof Command) {
       // instance of Command
       this._subcommands[name || cmd.command] = cmd
-    } else if (
-      typeof cmd === 'function' &&
-      Object.getPrototypeOf(cmd.prototype) instanceof Command
-    ) {
-      // cmd is an uninstantiated class
-      const cmdInstance = new cmd()
-      if ('command' in cmdInstance) {
-        this._subcommands[name || cmdInstance.command] = cmdInstance
-      }
-    } else if (
-      typeof cmd === 'object' &&
-      cmd !== null &&
-      'name' in cmd &&
-      typeof cmd.name === 'string' &&
-      '__type' in cmd &&
-      typeof cmd.__type === 'undefined'
-    ) {
-      // cmd is an object
-      if ('command' in cmd) {
-        this._subcommands[name || cmd.command || cmd.name] = new Command(cmd)
-      }
-    } else if (typeof cmd === 'object' && cmd !== null && 'command' in cmd) {
+    } else if (typeof cmd === 'object' && cmd !== null && '_initialized' in cmd && cmd._initialized === true) {
       // cmd is a class instance
       this._subcommands[name || cmd.command] = cmd
+    } else if (typeof cmd === 'function' && cmd.__type !== 'undefined') {
+      // cmd is an uninstantiated class
+      const cmdInstance = new cmd()
+      this._subcommands[name || cmdInstance.command || cmdInstance.name] = cmdInstance
+    } else if (typeof cmd === 'object' && cmd !== null && 'name' in cmd && typeof cmd.name === 'string') {
+      // cmd is an object
+      const instName = name || cmd.command || cmd.name
+      this._subcommands[instName] = new Command(cmd)
     } else {
       throw new Error(`Invalid subcommand: ${cmd}`)
     }

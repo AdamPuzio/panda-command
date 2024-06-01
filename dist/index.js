@@ -36529,42 +36529,43 @@ var CommandParser = class {
 
 // src/command.ts
 var Command = (_class = class _Command {
-  __init2() {this.__type = "Command"}
-  __init3() {this.name = void 0}
+  static __initStatic() {this.__type = "Command"}
+  __init2() {this._initialized = false}
   
   
-  __init4() {this._command = void 0}
+  
+  __init3() {this._command = void 0}
   get command() {
     return this._command || this.name;
   }
   set command(val) {
     this._command = val;
   }
-  __init5() {this.arguments = []}
-  __init6() {this.options = []}
-  __init7() {this.flags = []}
-  __init8() {this.prompts = []}
-  __init9() {this.subcommands = []}
-  __init10() {this.promptTypes = {}}
-  __init11() {this.autoHelp = true}
-  __init12() {this.autoVersion = true}
-  __init13() {this.silent = false}
-  __init14() {this.fun = true}
-  __init15() {this._arguments = []}
-  __init16() {this._options = []}
-  __init17() {this._flags = []}
-  __init18() {this._prompts = []}
-  __init19() {this._subcommands = {}}
-  __init20() {this._definitions = []}
+  __init4() {this.arguments = []}
+  __init5() {this.options = []}
+  __init6() {this.flags = []}
+  __init7() {this.prompts = []}
+  __init8() {this.subcommands = []}
+  __init9() {this.promptTypes = {}}
+  __init10() {this.autoHelp = true}
+  __init11() {this.autoVersion = true}
+  __init12() {this.silent = false}
+  __init13() {this.fun = true}
+  __init14() {this._arguments = []}
+  __init15() {this._options = []}
+  __init16() {this._flags = []}
+  __init17() {this._prompts = []}
+  __init18() {this._subcommands = {}}
+  __init19() {this._definitions = []}
   // none, single, multiple, positional, subcommand
-  __init21() {this._argumentStrategy = "none"}
+  __init20() {this._argumentStrategy = "none"}
   /**
    * Constructor
    *
    * @param {CommandProps} cfg  Command configuration
    * @memberof Command
    */
-  constructor(cfg) {;_class.prototype.__init2.call(this);_class.prototype.__init3.call(this);_class.prototype.__init4.call(this);_class.prototype.__init5.call(this);_class.prototype.__init6.call(this);_class.prototype.__init7.call(this);_class.prototype.__init8.call(this);_class.prototype.__init9.call(this);_class.prototype.__init10.call(this);_class.prototype.__init11.call(this);_class.prototype.__init12.call(this);_class.prototype.__init13.call(this);_class.prototype.__init14.call(this);_class.prototype.__init15.call(this);_class.prototype.__init16.call(this);_class.prototype.__init17.call(this);_class.prototype.__init18.call(this);_class.prototype.__init19.call(this);_class.prototype.__init20.call(this);_class.prototype.__init21.call(this);_class.prototype.__init22.call(this);_class.prototype.__init23.call(this);_class.prototype.__init24.call(this);_class.prototype.__init25.call(this);_class.prototype.__init26.call(this);
+  constructor(cfg) {;_class.prototype.__init2.call(this);_class.prototype.__init3.call(this);_class.prototype.__init4.call(this);_class.prototype.__init5.call(this);_class.prototype.__init6.call(this);_class.prototype.__init7.call(this);_class.prototype.__init8.call(this);_class.prototype.__init9.call(this);_class.prototype.__init10.call(this);_class.prototype.__init11.call(this);_class.prototype.__init12.call(this);_class.prototype.__init13.call(this);_class.prototype.__init14.call(this);_class.prototype.__init15.call(this);_class.prototype.__init16.call(this);_class.prototype.__init17.call(this);_class.prototype.__init18.call(this);_class.prototype.__init19.call(this);_class.prototype.__init20.call(this);_class.prototype.__init21.call(this);_class.prototype.__init22.call(this);_class.prototype.__init23.call(this);_class.prototype.__init24.call(this);_class.prototype.__init25.call(this);
     this.initialize(cfg);
     return this;
   }
@@ -36578,6 +36579,7 @@ var Command = (_class = class _Command {
   initialize(cfg = {}) {
     Object.entries(cfg).forEach(([key, value]) => this[key] = value);
     this.prepare();
+    this._initialized = true;
     return this;
   }
   /**
@@ -36745,7 +36747,7 @@ var Command = (_class = class _Command {
    * @memberof Command
    * @async
    */
-  __init22() {this.transform = async (data) => data}
+  __init21() {this.transform = async (data) => data}
   /**
    *
    * @param {object} data     data object
@@ -36912,17 +36914,14 @@ var Command = (_class = class _Command {
   subcommand(cmd, name) {
     if (cmd instanceof _Command) {
       this._subcommands[name || cmd.command] = cmd;
-    } else if (typeof cmd === "function" && Object.getPrototypeOf(cmd.prototype) instanceof _Command) {
-      const cmdInstance = new cmd();
-      if ("command" in cmdInstance) {
-        this._subcommands[name || cmdInstance.command] = cmdInstance;
-      }
-    } else if (typeof cmd === "object" && cmd !== null && "name" in cmd && typeof cmd.name === "string" && "__type" in cmd && typeof cmd.__type === "undefined") {
-      if ("command" in cmd) {
-        this._subcommands[name || cmd.command || cmd.name] = new _Command(cmd);
-      }
-    } else if (typeof cmd === "object" && cmd !== null && "command" in cmd) {
+    } else if (typeof cmd === "object" && cmd !== null && "_initialized" in cmd && cmd._initialized === true) {
       this._subcommands[name || cmd.command] = cmd;
+    } else if (typeof cmd === "function" && cmd.__type !== "undefined") {
+      const cmdInstance = new cmd();
+      this._subcommands[name || cmdInstance.command || cmdInstance.name] = cmdInstance;
+    } else if (typeof cmd === "object" && cmd !== null && "name" in cmd && typeof cmd.name === "string") {
+      const instName = name || cmd.command || cmd.name;
+      this._subcommands[instName] = new _Command(cmd);
     } else {
       throw new Error(`Invalid subcommand: ${cmd}`);
     }
@@ -36948,7 +36947,7 @@ var Command = (_class = class _Command {
     obj.group = groups;
     return obj;
   }
-  __init23() {this._autoFlagsRegistered = false}
+  __init22() {this._autoFlagsRegistered = false}
   /**
    * Register auto flags
    *
@@ -37146,7 +37145,7 @@ var Command = (_class = class _Command {
    * @memberof Command
    * @alias log
    */
-  __init24() {this.out = (msg, opts = {}) => this.log(msg, opts)}
+  __init23() {this.out = (msg, opts = {}) => this.log(msg, opts)}
   /**
    * Log an error
    *
@@ -37170,7 +37169,7 @@ var Command = (_class = class _Command {
    *
    * @memberof Command
    */
-  __init25() {this.spacer = () => {
+  __init24() {this.spacer = () => {
     if (!this.silent)
       console.log();
   }}
@@ -37181,7 +37180,7 @@ var Command = (_class = class _Command {
    * @returns {string}      Rainbowified text
    * @memberof Command
    */
-  __init26() {this.rainbow = (text) => rainbow(text)}
+  __init25() {this.rainbow = (text) => rainbow(text)}
   /**
    * Log a heading
    *
@@ -37198,7 +37197,7 @@ var Command = (_class = class _Command {
 ${msg}
 `);
   }
-}, _class);
+}, _class.__initStatic(), _class);
 
 // src/command.types.ts
 init_cjs_shims();
