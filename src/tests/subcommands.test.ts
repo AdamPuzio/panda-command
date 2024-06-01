@@ -14,6 +14,8 @@ class subcommandClass extends Command {
   }
 }
 
+const subcommandClassInstance = new subcommandClass()
+
 const subcommandObject = {
   name: 'subcommand-object',
 }
@@ -56,6 +58,28 @@ describe('subcommands', async () => {
         subcommand: {
           name: 'subcommand-class',
           argv: ['subcommand-name'],
+        },
+        unknown: [],
+        tags: {},
+      },
+    })
+  })
+
+  test('basic subcommand - class instance', async () => {
+    const argv = ['subcommand-class']
+    const rs = new Command({
+      name: 'basic-subcommand-class-instance',
+      subcommands: [subcommandClassInstance],
+    })
+    expect(rs.parse(argv)).toEqual({
+      data: {},
+      details: {
+        args: {},
+        opts: {},
+        flags: {},
+        subcommand: {
+          name: 'subcommand-class',
+          argv: [],
         },
         unknown: [],
         tags: {},

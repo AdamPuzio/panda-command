@@ -36535,8 +36535,9 @@ var CommandParser = class {
 
 // src/command.ts
 var Command = class _Command {
-  __type = "Command";
-  name = void 0;
+  static __type = "Command";
+  _initialized = false;
+  name;
   description;
   version;
   _command = void 0;
@@ -36584,6 +36585,7 @@ var Command = class _Command {
   initialize(cfg = {}) {
     Object.entries(cfg).forEach(([key, value]) => this[key] = value);
     this.prepare();
+    this._initialized = true;
     return this;
   }
   /**
@@ -36918,17 +36920,14 @@ var Command = class _Command {
   subcommand(cmd, name) {
     if (cmd instanceof _Command) {
       this._subcommands[name || cmd.command] = cmd;
-    } else if (typeof cmd === "function" && Object.getPrototypeOf(cmd.prototype) instanceof _Command) {
-      const cmdInstance = new cmd();
-      if ("command" in cmdInstance) {
-        this._subcommands[name || cmdInstance.command] = cmdInstance;
-      }
-    } else if (typeof cmd === "object" && cmd !== null && "name" in cmd && typeof cmd.name === "string" && "__type" in cmd && typeof cmd.__type === "undefined") {
-      if ("command" in cmd) {
-        this._subcommands[name || cmd.command || cmd.name] = new _Command(cmd);
-      }
-    } else if (typeof cmd === "object" && cmd !== null && "command" in cmd) {
+    } else if (typeof cmd === "object" && cmd !== null && "_initialized" in cmd && cmd._initialized === true) {
       this._subcommands[name || cmd.command] = cmd;
+    } else if (typeof cmd === "function" && cmd.__type !== "undefined") {
+      const cmdInstance = new cmd();
+      this._subcommands[name || cmdInstance.command || cmdInstance.name] = cmdInstance;
+    } else if (typeof cmd === "object" && cmd !== null && "name" in cmd && typeof cmd.name === "string") {
+      const instName = name || cmd.command || cmd.name;
+      this._subcommands[instName] = new _Command(cmd);
     } else {
       throw new Error(`Invalid subcommand: ${cmd}`);
     }

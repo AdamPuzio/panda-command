@@ -71,7 +71,8 @@ interface CommandPromptProps {
  * Command class
  */
 declare class Command {
-    __type: string;
+    static __type: string;
+    _initialized: boolean;
     name: string;
     description?: string;
     version?: string;
