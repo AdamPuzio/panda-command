@@ -276,6 +276,7 @@ export class Command {
     if (data.help) return this.outputHelp()
     if (data.version) return this.log(this.version)
 
+    await this.validateOptions(data)
     data = await this.runPrompts(data)
     data = await this.transformFn(data)
 
@@ -563,6 +564,10 @@ export class Command {
     const options = this._definitions
     for (let i = 0; i < options.length; i++) {
       const { name, validate } = options[i]
+      if (options[i].required && !data[name]) {
+        if (options[i].group.includes('_args')) return this.error(null, `Missing required argument`)
+        return this.error(null, `Missing required parameter: ${name}`)
+      }
       // check option has a validation property and a value has been sent
       if (typeof validate === 'function' && data[name]) {
         // run validation
