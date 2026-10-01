@@ -2,9 +2,7 @@
 import clargs from 'command-line-args'
 // @ts-expect-error needed for dual-bundling
 import { Prompt, PromptConstructor } from '@types/inquirer'
-// @ts-expect-error needed for dual-bundling
 import inquirer from 'inquirer'
-// @ts-expect-error needed for dual-bundling
 import chalk from 'chalk'
 
 import { rainbow, CommandParser } from './inc'
@@ -142,8 +140,21 @@ export class Command {
       arg.defaultOption = true
       definitions.push(arg)
     } else if (this._arguments.length > 1) {
-      // multiple arguments passed, so positional
+      // multiple arguments passed, so positional. command-line-args'
+      // underlying parser (with stopAtFirstUnknown: true) halts at the
+      // very first token it doesn't recognize as a defined option/flag or
+      // the one `defaultOption`. Without any defaultOption registered at
+      // all here, the FIRST bare positional token was always "unknown",
+      // which silently swallowed every token after it — including any
+      // real --option — into the unknown bucket, never parsed. Fixed by
+      // registering a single catch-all defaultOption (multiple: true, so
+      // every subsequent bare token keeps matching it instead of
+      // re-triggering "unknown") purely to keep the underlying parser's
+      // cursor moving correctly past positional tokens; parse() below
+      // still does the real per-argument assignment via
+      // parsePositionalArgs(), unchanged.
       this._argumentStrategy = 'positional'
+      definitions.push({ name: 'positionalArgs', type: String, multiple: true, defaultOption: true })
     }
 
     const subcommandCount = Object.keys(this._subcommands).length
@@ -188,27 +199,36 @@ export class Command {
       _opts: opts = {},
       _flags: flags = {},
       _unknown: unknown = [],
+      _none: none = {},
       ...tags
     } = primaryParse
 
     if (tags._system && Object.keys(tags._system).length === 0)
       delete tags._system
 
-    if (unknown.length > 0) {
-      if (this._argumentStrategy === 'positional') {
-        const updates = this.parsePositionalArgs({ data, args, unknown })
-        data = updates.data
-        unknown = updates.unknown
-      } else if (this._argumentStrategy === 'subcommand') {
-        const cmd = unknown.shift()
-        if (!this._subcommands[cmd])
-          throw new Error(`Unknown subcommand: ${cmd}`)
-        subcommand = {
-          name: cmd,
-          argv: unknown,
-        }
-        unknown = []
+    if (this._argumentStrategy === 'positional') {
+      // Bare positional tokens now land in `_none.positionalArgs` (see
+      // assemble()) instead of `_unknown` — real option parsing after the
+      // first positional is no longer broken as a result. Any genuinely
+      // unrecognized trailing tokens (there shouldn't normally be any,
+      // since every bare token matches the catch-all defaultOption) still
+      // flow back into `unknown` below, unchanged.
+      const positionalTokens: string[] = (none as { positionalArgs?: string[] }).positionalArgs || []
+      const updates = this.parsePositionalArgs({ data, args, unknown: positionalTokens })
+      data = updates.data
+      // Internal implementation artifact (see assemble()) — never meant to
+      // leak into the command's actual parsed data.
+      delete (data as { positionalArgs?: unknown }).positionalArgs
+      unknown = [...unknown, ...updates.unknown]
+    } else if (unknown.length > 0 && this._argumentStrategy === 'subcommand') {
+      const cmd = unknown.shift()
+      if (!this._subcommands[cmd])
+        throw new Error(`Unknown subcommand: ${cmd}`)
+      subcommand = {
+        name: cmd,
+        argv: unknown,
       }
+      unknown = []
     }
 
     const details = {
